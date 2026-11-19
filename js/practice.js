@@ -65,6 +65,8 @@
       try { wanakana.bind(input, { IMEMode: 'toHiragana' }); } catch (e) { /* なくても入力はできる */ }
     }
     input.addEventListener('compositionend', () => { lastCompositionEnd = performance.now(); });
+    // 漢字のお知らせは、漢字を消したら引っこめる
+    input.addEventListener('input', () => { if (!Judge.hasKanji(input.value)) setWarn(false); });
     input.addEventListener('keydown', (e) => {
       // 早おししてから0.3秒は、どのキーも受けつけない
       if (!state || state.inputLocked) { e.preventDefault(); e.stopPropagation(); return; }
@@ -191,6 +193,7 @@
     const box = $('answer-box');
     const input = $('answer-input');
     input.value = '';
+    setWarn(false);
     $('countdown').textContent = ANSWER_SEC;
     $('countdown').classList.remove('danger');
     $('countdown-wrap').classList.remove('danger');
@@ -210,6 +213,11 @@
       focusInput();
       startCountdown();
     }, INPUT_DELAY_MS);
+  }
+
+  function setWarn(on) {
+    $('answer-warn').hidden = !on;
+    $('answer-hint').hidden = on;
   }
 
   function focusInput() {
@@ -254,6 +262,14 @@
       try { value = wanakana.toHiragana(value); } catch (e) { /* そのまま使う */ }
     }
     if (!Judge.normalizeAnswer(value)) return; // 空っぽのときは送らない
+    // 日本語入力で漢字に変換してしまったときは送らずに知らせる（10カウントはそのまま進む）
+    if (Judge.hasKanji(value)) {
+      setWarn(true);
+      Effects.shake($('answer-box'));
+      Sound.play('tap');
+      focusInput();
+      return;
+    }
     const ok = Judge.isCorrect(value, state.q);
     reveal({ kind: ok ? 'correct' : 'wrong', input: value });
   }

@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=8">
+  <link rel="stylesheet" href="css/style.css?v=9">
 </head>
 <body>
   <div id="app">
@@ -221,7 +221,8 @@
                        maxlength="20" placeholder="こたえを入れてね" aria-label="こたえ">
                 <button id="btn-send" class="btn btn-primary btn-send">こたえる</button>
               </div>
-              <p class="hint"><kbd>Enter</kbd> で おくれるよ</p>
+              <p id="answer-hint" class="hint"><kbd>Enter</kbd> で おくれるよ</p>
+              <p id="answer-warn" class="answer-warn" hidden>漢字にしないで、ひらがなで入れてね</p>
             </div>
           </div>
         </div>
@@ -382,6 +383,7 @@
                 <button id="b-btn-send" class="btn btn-primary btn-send">こたえる</button>
               </div>
               <p id="b-answer-hint" class="hint"><kbd>Enter</kbd> で おくれるよ</p>
+              <p id="b-answer-warn" class="answer-warn" hidden>漢字にしないで、ひらがなで入れてね</p>
               <p id="b-watch-text" class="watch-text" hidden></p>
             </div>
           </div>
@@ -430,19 +432,19 @@
 
   <!-- ローマ字 → ひらがな（WanaKana, MIT License） -->
   <script src="https://cdn.jsdelivr.net/npm/wanakana@5.3.1/wanakana.min.js"></script>
-  <script src="js/firebase-config.js?v=8"></script>
-  <script src="js/sound.js?v=8"></script>
-  <script src="js/judge.js?v=8"></script>
-  <script src="js/avatar.js?v=8"></script>
-  <script src="js/store.js?v=8"></script>
-  <script src="js/profile.js?v=8"></script>
-  <script src="js/questions.js?v=8"></script>
-  <script src="js/reader.js?v=8"></script>
-  <script src="js/effects.js?v=8"></script>
-  <script src="js/practice.js?v=8"></script>
-  <script src="js/maker.js?v=8"></script>
-  <script src="js/ranking.js?v=8"></script>
-  <script src="js/battle.js?v=8"></script>
-  <script src="js/app.js?v=8"></script>
+  <script src="js/firebase-config.js?v=9"></script>
+  <script src="js/sound.js?v=9"></script>
+  <script src="js/judge.js?v=9"></script>
+  <script src="js/avatar.js?v=9"></script>
+  <script src="js/store.js?v=9"></script>
+  <script src="js/profile.js?v=9"></script>
+  <script src="js/questions.js?v=9"></script>
+  <script src="js/reader.js?v=9"></script>
+  <script src="js/effects.js?v=9"></script>
+  <script src="js/practice.js?v=9"></script>
+  <script src="js/maker.js?v=9"></script>
+  <script src="js/ranking.js?v=9"></script>
+  <script src="js/battle.js?v=9"></script>
+  <script src="js/app.js?v=9"></script>
 </body>
 </html>

@@ -23,5 +23,10 @@
     return answers.some((a) => normalizeAnswer(a) === got);
   }
 
-  window.Judge = { normalizeAnswer, isCorrect };
+  // 日本語入力で漢字に変換してしまったか（答えはひらがなか数字なので、漢字は送らずに知らせる）
+  function hasKanji(text) {
+    return /[々㐀-䶿一-鿿豈-﫿]/.test(String(text || ''));
+  }
+
+  window.Judge = { normalizeAnswer, isCorrect, hasKanji };
 })();

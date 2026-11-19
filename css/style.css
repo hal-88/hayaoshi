@@ -1457,3 +1457,17 @@ kbd {
   #screen-bresult { gap: 10px; }
   .br-avatar { width: clamp(90px, 14vmin, 120px); height: clamp(90px, 14vmin, 120px); }
 }
+
+/* 答えに漢字が入っていたときのお知らせ */
+.answer-warn {
+  margin: 10px 0 0;
+  padding: 4px 16px;
+  border: 2.5px solid #c62828;
+  border-radius: 999px;
+  background: #ffe3e3;
+  color: #c62828;
+  font-weight: 800;
+  font-size: clamp(15px, 2.5vmin, 19px);
+  text-align: center;
+  animation: pop-in .3s cubic-bezier(.2, 1.6, .4, 1);
+}

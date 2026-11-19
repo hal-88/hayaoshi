@@ -766,7 +766,8 @@
     }
     $('b-spot-name').textContent = (mine ? 'あなた' : (p.name || '？') + 'さん') + 'が おした！';
     $('b-answer-box').hidden = !mine;
-    $('b-answer-hint').hidden = !mine;
+    $('b-answer-hint').hidden = !mine || !!view.warn;
+    $('b-answer-warn').hidden = !mine || !view.warn;
     $('b-watch-text').hidden = mine;
     if (!mine) $('b-watch-text').textContent = (p.name || '？') + 'さんが 答えているよ…';
     const locked = performance.now() < view.inputLockedUntil;
@@ -855,7 +856,7 @@
     $('b-spot-avatar').innerHTML = Avatar.render(p.avatar || Avatar.DEFAULT);
     $('b-spot-name').textContent = 'あなたが おした！';
     $('b-answer-box').hidden = false;
-    $('b-answer-hint').hidden = false;
+    setWarn(false);
     $('b-watch-text').hidden = true;
     $('b-answer-box').classList.add('waiting');
     $('b-countdown').textContent = ANSWER_SEC;
@@ -903,6 +904,12 @@
     });
   }
 
+  function setWarn(on) {
+    view.warn = on;
+    $('b-answer-warn').hidden = !on;
+    $('b-answer-hint').hidden = on || $('b-answer-box').hidden;
+  }
+
   function focusInput() {
     const input = $('b-answer-input');
     if (document.activeElement === input) return;
@@ -920,6 +927,14 @@
       try { value = wanakana.toHiragana(value); } catch (e) { /* そのまま使う */ }
     }
     if (!Judge.normalizeAnswer(value)) return; // 空っぽは送らない
+    // 日本語入力で漢字に変換してしまったときは送らずに知らせる（10カウントはそのまま進む）
+    if (Judge.hasKanji(value)) {
+      setWarn(true);
+      Effects.shake($('b-answer-box'));
+      Sound.play('tap');
+      focusInput();
+      return;
+    }
     const q = questionMap[cur.questionId];
     if (!q) return;
     view.sentFor = k;
@@ -1175,6 +1190,8 @@
       try { wanakana.bind(input, { IMEMode: 'toHiragana' }); } catch (e) { /* なくても入力できる */ }
     }
     input.addEventListener('compositionend', () => { lastCompositionEnd = performance.now(); });
+    // 漢字のお知らせは、漢字を消したら引っこめる
+    input.addEventListener('input', () => { if (view.warn && !Judge.hasKanji(input.value)) setWarn(false); });
     input.addEventListener('keydown', (e) => {
       // 早押ししてから0.3秒は、どのキーも受けつけない
       if (performance.now() < view.inputLockedUntil) { e.preventDefault(); e.stopPropagation(); return; }
