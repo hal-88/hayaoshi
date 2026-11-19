@@ -1,0 +1,388 @@
+// 画面の切りかえと、全体のしくみ
+(function () {
+  const $ = (id) => document.getElementById(id);
+  let lastSubjectKey = null;
+  let nameMode = 'first'; // 'first'（はじめて）| 'rename'（名前を変える）
+  let found = null;       // 名前で見つかった記録
+  let accQueue = [];      // これから見せる「アクセサリーゲット！」
+
+  function show(screenId) {
+    if (screenId === 'screen-menu') updateMenu();
+    document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('active', s.id === screenId));
+    window.scrollTo(0, 0);
+  }
+
+  function updateMenu() {
+    $('menu-avatar').innerHTML = Avatar.renderCurrent();
+    $('menu-name').textContent = Profile.name();
+    $('menu-points').textContent = Profile.totalPoints().toLocaleString();
+    $('test-badge').hidden = Store.mode() !== 'test';
+  }
+
+  // ---- 音のオン・オフ ----
+  function updateSoundButton() {
+    const on = Sound.isEnabled();
+    $('sound-toggle').textContent = on ? '🔊' : '🔇';
+    $('sound-toggle').classList.toggle('off', !on);
+  }
+
+  // ---- はじめる ----
+  async function onStart() {
+    Sound.unlock(); // iPad で音を出せるようにする
+    Sound.play('tap');
+    const btn = $('btn-start');
+    btn.disabled = true;
+    btn.textContent = 'じゅんび中…';
+    try {
+      await Store.init();
+    } catch (e) {
+      alert('記録を保存するサーバーに つながりませんでした。\nインターネットを たしかめて、もう一度「はじめる」をおしてね。');
+      btn.disabled = false;
+      btn.textContent = 'はじめる';
+      return;
+    }
+    btn.disabled = false;
+    btn.textContent = 'はじめる';
+
+    if (Profile.loadLocal()) {
+      show('screen-menu');
+      // ほかの iPad で遊んだ分を読みなおす
+      Profile.refresh().then((r) => {
+        if (r === 'deleted') {
+          // 先生がこの名前を消した → 名前を入れなおしてもらう
+          openName('first');
+          nameError('記録が 消されたので、名前を 入れなおしてね');
+          return;
+        }
+        if ($('screen-menu').classList.contains('active')) updateMenu();
+      }).catch(() => {});
+    } else {
+      openName('first');
+    }
+  }
+
+  // ---- 名前 ----
+  function openName(mode) {
+    nameMode = mode;
+    found = null;
+    $('name-form').hidden = false;
+    $('name-found').hidden = true;
+    $('name-error').hidden = true;
+    $('btn-name-back').hidden = mode === 'first';
+    $('name-input').value = '';
+    show('screen-name');
+    setTimeout(() => { try { $('name-input').focus({ preventScroll: true }); } catch (e) { /* 何もしない */ } }, 350);
+  }
+
+  function nameError(msg) {
+    $('name-error').textContent = msg;
+    $('name-error').hidden = false;
+    Effects.shake($('name-form'));
+  }
+
+  async function onNameOk() {
+    // ローマ字入力の最後の「n」は「ん」にする
+    const name = $('name-input').value.replace(/n$/i, 'ん');
+    const clean = Store.normalizeName(name);
+    if (!clean) { nameError('名前を 入れてね'); return; }
+    if ([...clean].length > 10) { nameError('名前は 10文字までだよ'); return; }
+
+    const btn = $('btn-name-ok');
+    btn.disabled = true;
+    btn.textContent = 'さがしています…';
+    let res;
+    try {
+      res = await Profile.lookup(clean);
+    } catch (e) {
+      nameError('つながりませんでした。もう一度 おしてね');
+      return;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'けってい';
+    }
+    if (!res.ok) { nameError('その名前は つかえないよ。べつの名前にしてね'); return; }
+    Sound.play('tap');
+
+    if (res.data) {
+      // 同じ名前の記録がある → 本人か確かめる
+      found = res;
+      const eq = res.data.equipped || {};
+      $('found-avatar').innerHTML = Avatar.render(res.data.avatar || Avatar.DEFAULT, { equipped: eq });
+      $('found-name').textContent = res.data.name || res.name;
+      $('found-points').textContent = (Number(res.data.totalPoints) || 0).toLocaleString();
+      $('name-form').hidden = true;
+      $('name-found').hidden = false;
+    } else {
+      // はじめての名前 → キャラを作る
+      Maker.open({
+        canCancel: true,
+        onDone: async (r) => {
+          if (!r) { show('screen-name'); return; }
+          try {
+            await Profile.register(res.name, res.key, r.avatar);
+          } catch (e) {
+            alert('記録を保存できませんでした。インターネットを たしかめてね。');
+            return;
+          }
+          show('screen-menu');
+        },
+      });
+      show('screen-avatar');
+    }
+  }
+
+  async function onFoundYes() {
+    if (!found) return;
+    Sound.play('correct');
+    try {
+      await Profile.loginExisting(found.name, found.key, found.data);
+    } catch (e) {
+      alert('読みこめませんでした。もう一度 おしてね。');
+      return;
+    }
+    show('screen-menu');
+  }
+
+  // ---- 教科のボタン ----
+  function buildSubjectList() {
+    const wrap = $('subject-list');
+    wrap.innerHTML = '';
+    Questions.SUBJECTS.forEach((s) => {
+      const b = document.createElement('button');
+      b.className = 'subject-btn' + (s.key === 'all' ? ' subject-all' : '');
+      b.style.setProperty('--c', s.color);
+      const best = Profile.best(s.key);
+      b.innerHTML = '<span class="subject-badge"></span><span class="subject-text"><span class="subject-name"></span><span class="subject-best"></span></span>';
+      b.querySelector('.subject-badge').textContent = s.badge;
+      b.querySelector('.subject-name').textContent = s.label;
+      b.querySelector('.subject-best').textContent = best ? 'ベスト ' + best + '点' : 'まだ記録なし';
+      b.addEventListener('click', () => startPractice(s.key));
+      wrap.appendChild(b);
+    });
+  }
+
+  async function startPractice(key) {
+    Sound.play('tap');
+    lastSubjectKey = key;
+    let list;
+    try {
+      list = await Questions.load(key);
+    } catch (e) {
+      alert('問題を読みこめませんでした。インターネットのつながりを たしかめてね。');
+      return;
+    }
+    show('screen-play');
+    Practice.start(key, list, showResult);
+  }
+
+  // ---- 結果 ----
+  function showResult(r) {
+    const key = r.subject.key;
+    $('result-avatar').innerHTML = Avatar.renderCurrent();
+    $('result-subject').textContent = r.subject.label;
+    $('result-total').textContent = r.total;
+    $('result-correct').textContent = r.correct;
+    $('result-avgchar').textContent = r.avgChar == null ? '-' : r.avgChar;
+    $('result-best').textContent = Math.max(Profile.best(key), r.total);
+    $('result-newbest').hidden = true;
+    $('result-rank').hidden = true;
+    $('rp-total').textContent = '-';
+    $('rp-plus').textContent = '+' + r.total;
+    $('rp-bar').style.width = '0%';
+    $('rp-next').textContent = '記録しています…';
+    buildResultList(r.results);
+
+    show('screen-result');
+    Sound.play('fanfare');
+
+    Profile.applyPractice(key, r.total).then((res) => {
+      if (lastSubjectKey !== key || !$('screen-result').classList.contains('active')) return;
+      $('result-best').textContent = res.best;
+      if (res.isNewBest) {
+        $('result-newbest').hidden = false;
+        Effects.confetti(90);
+        setTimeout(() => {
+          Sound.play('sparkle');
+          Effects.sparkle($('result-newbest'));
+        }, 1200);
+      }
+      if (res.rank && res.rank <= 10) {
+        $('result-rank').textContent = '🏆 ' + r.subject.label + ' ランキング ' + res.rank + '位！';
+        $('result-rank').hidden = false;
+      }
+      showPoints(res);
+      if (res.newAccessories.length) {
+        accQueue = accQueue.concat(res.newAccessories);
+        setTimeout(showNextAcc, 1800);
+      }
+    }).catch(() => {
+      $('rp-next').textContent = '記録を 保存できませんでした（インターネットを たしかめてね）';
+    });
+  }
+
+  function showPoints(res) {
+    const total = res.total;
+    $('rp-total').textContent = total.toLocaleString();
+    const next = res.next;
+    const prev = Avatar.ACCESSORIES.filter((x) => x.points <= total).pop();
+    const from = prev ? prev.points : 0;
+    if (next) {
+      $('rp-next').textContent = 'つぎの アクセサリー「' + next.name + '」まで あと ' + (next.points - total).toLocaleString() + '点';
+      $('rp-bar').style.width = Math.min(100, ((total - from) / (next.points - from)) * 100) + '%';
+    } else {
+      $('rp-next').textContent = 'アクセサリーを ぜんぶ ゲットしたよ！すごい！';
+      $('rp-bar').style.width = '100%';
+    }
+  }
+
+  function buildResultList(results) {
+    const list = $('result-list');
+    list.innerHTML = '';
+    results.forEach((x) => {
+      const li = document.createElement('li');
+      li.className = 'result-item ' + (x.kind === 'correct' ? 'ok' : 'ng');
+      li.innerHTML = '<span class="ri-mark"></span><span class="ri-body"><span class="ri-q"></span><span class="ri-a"></span></span><span class="ri-pts"></span>';
+      li.querySelector('.ri-mark').textContent = x.kind === 'correct' ? '○' : '×';
+      li.querySelector('.ri-q').textContent = x.question.question;
+      li.querySelector('.ri-a').textContent = 'こたえ：' + x.question.answer;
+      li.querySelector('.ri-pts').textContent = x.points + '点';
+      list.appendChild(li);
+    });
+  }
+
+  // ---- アクセサリーゲット！ ----
+  let accShowing = null;
+  function showNextAcc() {
+    if (accShowing || !accQueue.length) return;
+    const x = accQueue.shift();
+    accShowing = x;
+    const eq = Object.assign({}, Profile.equipped(), { [x.slot]: x.id });
+    $('acc-modal-avatar').innerHTML = Avatar.render(Avatar.load() || Avatar.DEFAULT, { equipped: eq });
+    $('acc-modal-name').textContent = '「' + x.name + '」';
+    $('acc-modal').hidden = false;
+    Sound.play('fanfare');
+    setTimeout(() => Sound.play('sparkle'), 900);
+    Effects.sparkle($('acc-modal').querySelector('.modal-card'));
+    Effects.confetti(80);
+  }
+  function closeAcc() {
+    $('acc-modal').hidden = true;
+    accShowing = null;
+    $('result-avatar').innerHTML = Avatar.renderCurrent();
+    setTimeout(showNextAcc, 300);
+  }
+
+  // キャラクターづくり（メニューから）
+  function openMakerFromMenu() {
+    Maker.open({
+      canCancel: true,
+      onDone: async (r) => {
+        if (r) {
+          try {
+            await Profile.saveLook(r.avatar, r.equipped);
+          } catch (e) {
+            alert('保存できませんでした。インターネットを たしかめてね。');
+          }
+        }
+        show('screen-menu');
+      },
+    });
+    show('screen-avatar');
+  }
+
+  window.App = { show };
+
+  function init() {
+    Practice.setup();
+    Maker.setup();
+    Battle.setup();
+    updateSoundButton();
+
+    $('btn-start').addEventListener('click', onStart);
+
+    // 名前
+    const nameInput = $('name-input');
+    if (window.wanakana) {
+      try { wanakana.bind(nameInput, { IMEMode: 'toHiragana' }); } catch (e) { /* なくても入力できる */ }
+    }
+    let lastComp = 0;
+    nameInput.addEventListener('compositionend', () => { lastComp = performance.now(); });
+    nameInput.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      if (e.isComposing || e.keyCode === 229 || performance.now() - lastComp < 80) return;
+      onNameOk();
+    });
+    $('btn-name-ok').addEventListener('click', onNameOk);
+    $('btn-name-back').addEventListener('click', () => { Sound.play('tap'); show('screen-menu'); });
+    $('btn-found-yes').addEventListener('click', onFoundYes);
+    $('btn-found-no').addEventListener('click', () => { Sound.play('tap'); openName(nameMode); });
+    $('btn-rename').addEventListener('click', () => { Sound.play('tap'); openName('rename'); });
+
+    $('btn-avatar').addEventListener('click', () => { Sound.play('tap'); openMakerFromMenu(); });
+    $('btn-ranking').addEventListener('click', () => {
+      Sound.play('tap');
+      show('screen-ranking');
+      Ranking.open();
+    });
+
+    $('btn-acc-wear').addEventListener('click', async () => {
+      const x = accShowing;
+      Sound.play('correct');
+      if (x) { try { await Profile.equipOne(x.id); } catch (e) { /* つけられなくても続ける */ } }
+      closeAcc();
+    });
+    $('btn-acc-later').addEventListener('click', () => { Sound.play('tap'); closeAcc(); });
+
+    $('sound-toggle').addEventListener('click', () => {
+      Sound.unlock();
+      Sound.setEnabled(!Sound.isEnabled());
+      updateSoundButton();
+      Sound.play('tap');
+    });
+
+    $('btn-practice').addEventListener('click', () => {
+      Sound.play('tap');
+      buildSubjectList();
+      show('screen-subject');
+    });
+
+    $('btn-battle').addEventListener('click', () => {
+      Sound.play('tap');
+      if (Store.mode() !== 'firebase') {
+        alert('対戦は、Firebase の設定をしてから 使えるよ（いまは テストモードです）');
+        return;
+      }
+      Battle.openLobby();
+    });
+
+    $('btn-quit').addEventListener('click', () => {
+      if (!confirm('とちゅうで やめる？（記録は のこらないよ）')) return;
+      Practice.stop();
+      buildSubjectList();
+      show('screen-subject');
+    });
+
+    $('btn-again').addEventListener('click', () => {
+      if (lastSubjectKey) startPractice(lastSubjectKey);
+    });
+
+    document.querySelectorAll('[data-go]').forEach((b) => {
+      b.addEventListener('click', () => {
+        Sound.play('tap');
+        if (b.dataset.go === 'screen-subject') buildSubjectList();
+        show(b.dataset.go);
+      });
+    });
+
+    // ダブルタップで画面が大きくならないようにする（iPad）
+    let lastTouch = 0;
+    document.addEventListener('touchend', (e) => {
+      const now = Date.now();
+      if (now - lastTouch < 350 && e.target.tagName !== 'INPUT') e.preventDefault();
+      lastTouch = now;
+    }, { passive: false });
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();

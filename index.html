@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#fff4dc">
+  <title>早押しクイズ</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="早押しクイズ">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=8">
+</head>
+<body>
+  <div id="app">
+    <!-- 背景：まわる光のすじ・ドット・うかぶ形 -->
+    <div class="studio-bg" aria-hidden="true">
+      <div class="sunburst"></div>
+      <div class="dots"></div>
+      <svg class="deco deco-1" viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="#ffc93c" stroke="#2b2463" stroke-width="4"/></svg>
+      <svg class="deco deco-2" viewBox="0 0 60 60"><path d="M30 6 L54 50 L6 50Z" fill="#2ec4a6" stroke="#2b2463" stroke-width="4" stroke-linejoin="round"/></svg>
+      <svg class="deco deco-3" viewBox="0 0 60 60"><path d="M30 4 L37 22 L56 23 L41 35 L46 54 L30 43 L14 54 L19 35 L4 23 L23 22Z" fill="#ff5c8d" stroke="#2b2463" stroke-width="4" stroke-linejoin="round"/></svg>
+      <svg class="deco deco-4" viewBox="0 0 60 60"><rect x="10" y="10" width="40" height="40" rx="10" fill="#4d9dff" stroke="#2b2463" stroke-width="4" transform="rotate(15 30 30)"/></svg>
+      <svg class="deco deco-5" viewBox="0 0 60 60"><text x="30" y="47" text-anchor="middle" font-size="46" font-family="Dela Gothic One, sans-serif" fill="#8c6bff" stroke="#2b2463" stroke-width="3" paint-order="stroke">?</text></svg>
+      <svg class="deco deco-6" viewBox="0 0 60 60"><path d="M8 34 Q18 14 28 34 T48 34" fill="none" stroke="#ff6b57" stroke-width="8" stroke-linecap="round"/></svg>
+    </div>
+
+    <button id="sound-toggle" class="sound-toggle" aria-label="音のオン・オフ">🔊</button>
+
+    <!-- トップ -->
+    <section id="screen-top" class="screen active">
+      <div class="logo">
+        <svg class="logo-buzzer" viewBox="0 0 120 110" aria-hidden="true">
+          <path d="M18 18 L8 6 M60 10 L60 -4 M102 18 L112 6" stroke="#2b2463" stroke-width="6" stroke-linecap="round"/>
+          <ellipse cx="60" cy="92" rx="52" ry="14" fill="#2b2463"/>
+          <rect x="10" y="66" width="100" height="26" rx="8" fill="#4d9dff" stroke="#2b2463" stroke-width="5"/>
+          <path d="M22 68 C22 30 40 18 60 18 C80 18 98 30 98 68Z" fill="#ff4f4f" stroke="#2b2463" stroke-width="5" stroke-linejoin="round"/>
+          <path d="M36 50 C38 38 46 31 56 29" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".8"/>
+        </svg>
+        <div class="logo-ribbon">みんなで ちょうせん！</div>
+        <h1 class="logo-main">
+          <span class="logo-hayaoshi"><span>早</span><span>押</span><span>し</span></span>
+          <span class="logo-quiz">クイズ</span>
+        </h1>
+      </div>
+      <div class="notice">
+        <div class="notice-main">答えは <b class="mark-pink">ひらがな</b> か <b class="mark-blue">数字</b> で入れるよ</div>
+        <div class="kana-demo" aria-label="ローマ字で打っても ひらがなに かわるよ">
+          <span class="key">K</span><span class="key">A</span><span class="kana-arrow">→</span><span class="key key-kana">か</span>
+          <span class="kana-text">ローマ字で打っても ひらがなに かわるよ</span>
+        </div>
+      </div>
+      <button id="btn-start" class="btn btn-primary btn-big">はじめる</button>
+    </section>
+
+    <!-- メニュー -->
+    <section id="screen-menu" class="screen">
+      <div class="menu-head">
+        <div id="menu-avatar" class="avatar-badge avatar-mini"></div>
+        <div class="menu-me">
+          <div class="menu-name"><b id="menu-name"></b> さん</div>
+          <div class="menu-points">ためた点 <b id="menu-points">0</b>点</div>
+        </div>
+        <button id="btn-rename" class="btn btn-small btn-ghost">名前を変える</button>
+      </div>
+      <div id="test-badge" class="test-badge" hidden>テストモード：記録は この端末の中だけに のこります</div>
+      <div class="menu-grid">
+        <button id="btn-practice" class="menu-card" style="--c:#ffc93c">
+          <span class="menu-icon">
+            <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="19" fill="#ff6b57" stroke="#2b2463" stroke-width="3"/><circle cx="24" cy="24" r="12" fill="#fff" stroke="#2b2463" stroke-width="3"/><circle cx="24" cy="24" r="5" fill="#ff6b57" stroke="#2b2463" stroke-width="3"/><path d="M24 24 L42 6 M36 5 L43 5 L43 12" fill="none" stroke="#2b2463" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <span class="menu-label">練習する</span>
+          <span class="menu-sub">10問チャレンジ</span>
+        </button>
+        <button id="btn-battle" class="menu-card" style="--c:#ff8fb0">
+          <span class="menu-icon">
+            <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M28 3 L9 27 L21 27 L17 45 L39 19 L26 19 L30 3Z" fill="#ffc93c" stroke="#2b2463" stroke-width="3" stroke-linejoin="round"/></svg>
+          </span>
+          <span class="menu-label">対戦する</span>
+          <span class="menu-sub">2〜4人で 早押し</span>
+        </button>
+        <button id="btn-ranking" class="menu-card" style="--c:#7fd8c4">
+          <span class="menu-icon">
+            <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M13 6 H35 V18 C35 26 30 31 24 31 C18 31 13 26 13 18Z" fill="#ffc93c" stroke="#2b2463" stroke-width="3" stroke-linejoin="round"/><path d="M13 10 H6 C6 18 9 21 14 21 M35 10 H42 C42 18 39 21 34 21" fill="none" stroke="#2b2463" stroke-width="3" stroke-linecap="round"/><path d="M20 31 L19 38 H29 L28 31" fill="#ffc93c" stroke="#2b2463" stroke-width="3" stroke-linejoin="round"/><rect x="14" y="38" width="20" height="6" rx="2" fill="#ff6b57" stroke="#2b2463" stroke-width="3"/></svg>
+          </span>
+          <span class="menu-label">ランキング</span>
+          <span class="menu-sub">教科ごとの 上位10人</span>
+        </button>
+        <button id="btn-avatar" class="menu-card" style="--c:#8cc4ff">
+          <span class="menu-icon">
+            <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="25" r="18" fill="#ffe1c8" stroke="#2b2463" stroke-width="3"/><path d="M7 22 C8 10 16 5 24 5 C32 5 40 10 41 22 C35 17 30 14 24 15 C18 14 12 17 7 22Z" fill="#5b3a24" stroke="#2b2463" stroke-width="3" stroke-linejoin="round"/><circle cx="18" cy="26" r="2.6" fill="#2b2463"/><circle cx="30" cy="26" r="2.6" fill="#2b2463"/><path d="M18 33 Q24 38 30 33" fill="none" stroke="#2b2463" stroke-width="3" stroke-linecap="round"/></svg>
+          </span>
+          <span class="menu-label">キャラクター</span>
+          <span class="menu-sub">作りなおす・アクセサリー</span>
+        </button>
+      </div>
+      <button class="btn btn-ghost" data-go="screen-top">もどる</button>
+    </section>
+
+    <!-- 名前 -->
+    <section id="screen-name" class="screen">
+      <h2 class="screen-title">名前を 入れてね</h2>
+      <div class="name-card">
+        <div id="name-form" class="name-form">
+          <input id="name-input" class="name-input" type="text" maxlength="10"
+                 autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                 placeholder="10文字まで" aria-label="名前">
+          <p class="name-hint">同じ名前なら、ちがうiPadでも つづきから あそべるよ</p>
+          <p id="name-error" class="name-error" hidden></p>
+          <div class="name-buttons">
+            <button id="btn-name-back" class="btn btn-ghost">もどる</button>
+            <button id="btn-name-ok" class="btn btn-primary">けってい</button>
+          </div>
+        </div>
+        <div id="name-found" class="name-found" hidden>
+          <div id="found-avatar" class="avatar-badge found-avatar"></div>
+          <p class="found-text"><b id="found-name"></b> さんの 記録が 見つかったよ！</p>
+          <p class="found-points">ためた点 <b id="found-points">0</b>点</p>
+          <div class="name-buttons">
+            <button id="btn-found-no" class="btn btn-ghost">ちがう名前にする</button>
+            <button id="btn-found-yes" class="btn btn-primary">つづきから あそぶ</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- キャラクターづくり -->
+    <section id="screen-avatar" class="screen">
+      <h2 class="screen-title">キャラクターを つくろう</h2>
+      <div class="maker">
+        <div class="maker-preview">
+          <div class="maker-stage">
+            <div id="maker-avatar" class="avatar-badge maker-avatar"></div>
+          </div>
+          <button id="btn-random" class="btn btn-sub">🎲 おまかせ</button>
+        </div>
+        <div class="maker-side">
+          <div class="maker-tabs" role="tablist">
+            <button id="tab-parts" class="maker-tab active" role="tab">パーツ</button>
+            <button id="tab-acc" class="maker-tab" role="tab">アクセサリー</button>
+          </div>
+          <div id="maker-parts" class="maker-parts"></div>
+          <div id="maker-acc" class="maker-acc" hidden>
+            <div id="acc-rows" class="maker-parts"></div>
+            <div class="acc-progress">
+              <div class="acc-progress-text" id="acc-progress-text"></div>
+              <div class="bar"><div id="acc-progress-bar" class="bar-fill"></div></div>
+            </div>
+            <div id="acc-grid" class="acc-grid"></div>
+          </div>
+        </div>
+      </div>
+      <div class="maker-buttons">
+        <button id="btn-avatar-back" class="btn btn-ghost">もどる</button>
+        <button id="btn-avatar-ok" class="btn btn-primary">これにする！</button>
+      </div>
+    </section>
+
+    <!-- 教科をえらぶ -->
+    <section id="screen-subject" class="screen">
+      <h2 class="screen-title">教科を えらぼう</h2>
+      <p class="screen-lead">10問 出るよ。早くおして 正かいするほど 点が高い！</p>
+      <div id="subject-list" class="subject-list"></div>
+      <button class="btn btn-ghost" data-go="screen-menu">もどる</button>
+    </section>
+
+    <!-- 練習 -->
+    <section id="screen-play" class="screen">
+      <header class="play-head">
+        <span id="play-subject" class="chip">社会</span>
+        <div class="play-progress">
+          <span id="play-count" class="play-count">第1問 / 10</span>
+          <span id="play-dots" class="play-dots" aria-hidden="true"></span>
+        </div>
+        <span class="play-score"><b id="play-score">0</b>点</span>
+        <button id="btn-quit" class="btn btn-small btn-ghost">やめる</button>
+      </header>
+
+      <div class="board-wrap">
+        <div class="board-frame">
+          <div class="board">
+            <div id="q-text" class="q-text"></div>
+            <div id="full-timer" class="full-timer" hidden><div class="full-timer-bar"></div></div>
+          </div>
+        </div>
+        <div id="intro" class="intro" hidden><span id="intro-text">第1問</span></div>
+      </div>
+
+      <div class="stage">
+        <!-- 早おし -->
+        <div id="stage-buzz" class="stage-part stage-buzz">
+          <div class="buzzer">
+            <button id="btn-buzz" class="buzz-btn" aria-label="おす">おす！</button>
+            <div class="buzzer-base" aria-hidden="true"></div>
+          </div>
+          <p class="hint">キーボードの <kbd>Enter</kbd> でも おせるよ</p>
+        </div>
+
+        <!-- 答える -->
+        <div id="stage-answer" class="stage-part stage-answer" hidden>
+          <div class="spot">
+            <div class="spot-rays" aria-hidden="true"></div>
+            <div id="spot-avatar" class="avatar-badge spot-avatar"></div>
+            <div class="spot-name">あなたが おした！</div>
+          </div>
+          <div class="answer-area">
+            <div id="countdown-wrap" class="countdown-wrap" style="--p:1">
+              <svg viewBox="0 0 120 120" aria-hidden="true">
+                <circle class="ring-bg" cx="60" cy="60" r="50"/>
+                <circle class="ring" cx="60" cy="60" r="50" pathLength="100"/>
+              </svg>
+              <div id="countdown" class="countdown">10</div>
+            </div>
+            <div class="answer-col">
+              <div id="answer-box" class="answer-box">
+                <input id="answer-input" class="answer-input" type="text" inputmode="text"
+                       autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                       maxlength="20" placeholder="こたえを入れてね" aria-label="こたえ">
+                <button id="btn-send" class="btn btn-primary btn-send">こたえる</button>
+              </div>
+              <p class="hint"><kbd>Enter</kbd> で おくれるよ</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 正かい・ざんねん -->
+        <div id="stage-reveal" class="stage-part stage-reveal" hidden>
+          <div id="reveal-mark" class="reveal-mark">○</div>
+          <div class="reveal-body">
+            <div id="reveal-title" class="reveal-title">正かい！</div>
+            <div class="reveal-answer">こたえ <b id="reveal-answer"></b></div>
+            <div id="reveal-yours" class="reveal-yours"></div>
+            <div id="reveal-points" class="reveal-points"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ランキング -->
+    <section id="screen-ranking" class="screen">
+      <h2 class="screen-title">ランキング</h2>
+      <div id="rank-tabs" class="rank-tabs" role="tablist"></div>
+      <div class="rank-board">
+        <ol id="rank-list" class="rank-list"></ol>
+        <p id="rank-empty" class="rank-empty" hidden>まだ だれも 記録がないよ。いちばんのりを ねらおう！</p>
+      </div>
+      <div id="rank-me" class="rank-me"></div>
+      <button class="btn btn-ghost" data-go="screen-menu">もどる</button>
+    </section>
+
+    <!-- 結果 -->
+    <section id="screen-result" class="screen">
+      <h2 class="screen-title"><span id="result-subject">社会</span> のけっか</h2>
+      <div class="result-card">
+        <div id="result-avatar" class="avatar-badge result-avatar"></div>
+        <div class="result-score"><b id="result-total">0</b><span>点</span></div>
+        <div id="result-newbest" class="result-newbest" hidden>★ ベスト記録 こうしん！ ★</div>
+        <div id="result-rank" class="result-rank" hidden></div>
+      </div>
+      <div class="result-stats">
+        <div class="stat" style="--c:#2ec4a6"><span class="stat-label">正かい</span><b id="result-correct">0</b><span class="stat-unit">/ 10問</span></div>
+        <div class="stat" style="--c:#4d9dff"><span class="stat-label">平きん</span><b id="result-avgchar">-</b><span class="stat-unit">文字目で おした</span></div>
+        <div class="stat" style="--c:#ff5c8d"><span class="stat-label">ベスト記録</span><b id="result-best">0</b><span class="stat-unit">点</span></div>
+      </div>
+      <div id="result-points" class="result-points">
+        <div class="rp-line">ためた点 <b id="rp-total">-</b>点 <span id="rp-plus" class="rp-plus"></span></div>
+        <div class="bar"><div id="rp-bar" class="bar-fill"></div></div>
+        <div id="rp-next" class="rp-next">記録しています…</div>
+      </div>
+      <div class="result-buttons">
+        <button id="btn-again" class="btn btn-primary">もう一回</button>
+        <button class="btn btn-ghost" data-go="screen-menu">メニューへ</button>
+      </div>
+      <ol id="result-list" class="result-list"></ol>
+    </section>
+
+    <!-- 対戦：部屋を作る・入る -->
+    <section id="screen-lobby" class="screen">
+      <h2 class="screen-title">対戦する</h2>
+      <p class="screen-lead">2〜4人で 早押しバトル！</p>
+      <div class="lobby">
+        <div class="lobby-card" style="--c:#ffc93c">
+          <div class="lobby-title">部屋を 作る</div>
+          <p class="lobby-text">4けたの 部屋コードが 出るよ。<br>みんなに 教えてあげてね</p>
+          <button id="btn-room-create" class="btn btn-primary">部屋を 作る</button>
+        </div>
+        <div class="lobby-card" style="--c:#8cc4ff">
+          <div class="lobby-title">部屋に 入る</div>
+          <input id="room-code-input" class="code-input" type="text" inputmode="numeric" pattern="[0-9]*"
+                 maxlength="4" autocomplete="off" placeholder="0000" aria-label="部屋コード">
+          <button id="btn-room-join" class="btn btn-sub">入る</button>
+        </div>
+      </div>
+      <p id="lobby-error" class="name-error" hidden></p>
+      <button id="btn-lobby-back" class="btn btn-ghost">もどる</button>
+    </section>
+
+    <!-- 対戦：待機室 -->
+    <section id="screen-room" class="screen">
+      <div class="room-code-box">
+        <span class="room-code-label">部屋コード</span>
+        <b id="room-code" class="room-code">0000</b>
+      </div>
+      <div id="room-players" class="room-players"></div>
+      <div class="room-settings">
+        <div class="set-row">
+          <span class="set-label">教科</span>
+          <div id="set-subject" class="set-options"></div>
+        </div>
+        <div class="set-row">
+          <span class="set-label">何問 先取</span>
+          <div class="set-stepper">
+            <button id="set-target-minus" class="part-arrow" aria-label="へらす">◀</button>
+            <span class="set-target"><b id="set-target">5</b>問</span>
+            <button id="set-target-plus" class="part-arrow" aria-label="ふやす">▶</button>
+          </div>
+        </div>
+        <div class="set-row">
+          <span class="set-label">文字の 速さ</span>
+          <div id="set-speed" class="set-options"></div>
+        </div>
+      </div>
+      <p id="room-wait" class="room-wait"></p>
+      <div class="stamp-slot"></div>
+      <div class="name-buttons">
+        <button id="btn-room-leave" class="btn btn-ghost">ぬける</button>
+        <button id="btn-room-start" class="btn btn-primary">スタート！</button>
+      </div>
+    </section>
+
+    <!-- 対戦 -->
+    <section id="screen-battle" class="screen">
+      <header class="play-head">
+        <span id="b-subject" class="chip">オールジャンル</span>
+        <span id="b-count" class="play-count">第1問</span>
+        <span id="b-target" class="b-target">5問 先取</span>
+        <button id="btn-b-quit" class="btn btn-small btn-ghost">ぬける</button>
+      </header>
+      <div id="b-players" class="b-players"></div>
+
+      <div class="board-wrap">
+        <div class="board-frame">
+          <div class="board">
+            <div id="b-q-text" class="q-text"></div>
+            <div id="b-full-timer" class="full-timer" hidden><div class="full-timer-bar"></div></div>
+          </div>
+        </div>
+        <div id="b-intro" class="intro" hidden><span id="b-intro-text">第1問</span></div>
+      </div>
+
+      <div class="stage">
+        <div id="b-stage-buzz" class="stage-part stage-buzz">
+          <div class="buzzer">
+            <button id="b-btn-buzz" class="buzz-btn" aria-label="おす">おす！</button>
+            <div class="buzzer-base" aria-hidden="true"></div>
+          </div>
+          <p id="b-buzz-hint" class="hint">キーボードの <kbd>Enter</kbd> でも おせるよ</p>
+        </div>
+
+        <div id="b-stage-answer" class="stage-part stage-answer" hidden>
+          <div class="spot">
+            <div class="spot-rays" aria-hidden="true"></div>
+            <div id="b-spot-avatar" class="avatar-badge spot-avatar"></div>
+            <div id="b-spot-name" class="spot-name"></div>
+          </div>
+          <div class="answer-area">
+            <div id="b-countdown-wrap" class="countdown-wrap" style="--p:1">
+              <svg viewBox="0 0 120 120" aria-hidden="true">
+                <circle class="ring-bg" cx="60" cy="60" r="50"/>
+                <circle class="ring" cx="60" cy="60" r="50" pathLength="100"/>
+              </svg>
+              <div id="b-countdown" class="countdown">10</div>
+            </div>
+            <div class="answer-col">
+              <div id="b-answer-box" class="answer-box">
+                <input id="b-answer-input" class="answer-input" type="text" inputmode="text"
+                       autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                       maxlength="20" placeholder="こたえを入れてね" aria-label="こたえ">
+                <button id="b-btn-send" class="btn btn-primary btn-send">こたえる</button>
+              </div>
+              <p id="b-answer-hint" class="hint"><kbd>Enter</kbd> で おくれるよ</p>
+              <p id="b-watch-text" class="watch-text" hidden></p>
+            </div>
+          </div>
+        </div>
+
+        <div id="b-stage-reveal" class="stage-part stage-reveal" hidden>
+          <div id="b-reveal-mark" class="reveal-mark">○</div>
+          <div class="reveal-body">
+            <div id="b-reveal-title" class="reveal-title">正かい！</div>
+            <div id="b-reveal-answer-row" class="reveal-answer">こたえ <b id="b-reveal-answer"></b></div>
+            <div id="b-reveal-who" class="reveal-yours"></div>
+          </div>
+        </div>
+      </div>
+      <div id="b-stamp-slot" class="stamp-slot"></div>
+    </section>
+
+    <!-- 対戦の結果 -->
+    <section id="screen-bresult" class="screen">
+      <h2 class="screen-title">対戦の けっか</h2>
+      <div id="br-winner" class="br-winner"></div>
+      <div id="br-list" class="br-list"></div>
+      <p id="br-wait" class="room-wait"></p>
+      <div class="result-buttons">
+        <button id="btn-br-again" class="btn btn-primary">もう一回</button>
+        <button id="btn-br-menu" class="btn btn-ghost">メニューへ</button>
+      </div>
+      <div class="stamp-slot"></div>
+    </section>
+
+    <div id="acc-modal" class="modal" hidden>
+      <div class="modal-card">
+        <div class="modal-rays" aria-hidden="true"></div>
+        <div class="modal-title">アクセサリー ゲット！</div>
+        <div id="acc-modal-avatar" class="avatar-badge modal-avatar"></div>
+        <div id="acc-modal-name" class="modal-name"></div>
+        <div class="name-buttons">
+          <button id="btn-acc-later" class="btn btn-ghost">とじる</button>
+          <button id="btn-acc-wear" class="btn btn-primary">つけてみる！</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="fx-layer" class="fx-layer" aria-hidden="true"></div>
+  </div>
+
+  <!-- ローマ字 → ひらがな（WanaKana, MIT License） -->
+  <script src="https://cdn.jsdelivr.net/npm/wanakana@5.3.1/wanakana.min.js"></script>
+  <script src="js/firebase-config.js?v=8"></script>
+  <script src="js/sound.js?v=8"></script>
+  <script src="js/judge.js?v=8"></script>
+  <script src="js/avatar.js?v=8"></script>
+  <script src="js/store.js?v=8"></script>
+  <script src="js/profile.js?v=8"></script>
+  <script src="js/questions.js?v=8"></script>
+  <script src="js/reader.js?v=8"></script>
+  <script src="js/effects.js?v=8"></script>
+  <script src="js/practice.js?v=8"></script>
+  <script src="js/maker.js?v=8"></script>
+  <script src="js/ranking.js?v=8"></script>
+  <script src="js/battle.js?v=8"></script>
+  <script src="js/app.js?v=8"></script>
+</body>
+</html>
