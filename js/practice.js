@@ -51,10 +51,12 @@
       if (state && state.phase === 'answering') focusInput();
     });
 
+    // 早押しはスペースキー（Enter でもおせる）
     document.addEventListener('keydown', (e) => {
       if (!state) return;
-      if (e.key !== 'Enter') return;
-      if (e.target === $('answer-input')) return; // 入力欄の Enter は下で受ける
+      const isSpace = e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space';
+      if (!isSpace && e.key !== 'Enter') return;
+      if (e.target === $('answer-input')) return; // 入力欄のキーは下で受ける
       e.preventDefault();
       if (e.repeat) return;
       buzz();

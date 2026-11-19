@@ -699,7 +699,7 @@
         $('b-btn-buzz').disabled = !can;
         $('b-buzz-hint').innerHTML = myLocked
           ? 'この問題は もう おせないよ。ほかの人の 答えを まとう'
-          : 'キーボードの <kbd>Enter</kbd> でも おせるよ';
+          : 'キーボードの <kbd>スペース</kbd> でも おせるよ';
         if (document.activeElement === $('b-answer-input')) $('b-answer-input').blur();
       }
 
@@ -1174,9 +1174,10 @@
       if (view.pending) focusInput();
     });
 
-    // 早押し（Enter）
+    // 早押しはスペースキー（Enter でもおせる）
     document.addEventListener('keydown', (e) => {
-      if (e.key !== 'Enter') return;
+      const isSpace = e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space';
+      if (!isSpace && e.key !== 'Enter') return;
       if (activeScreen() !== 'screen-battle') return;
       if (e.target === $('b-answer-input')) return;
       e.preventDefault();

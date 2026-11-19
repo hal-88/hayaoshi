@@ -1568,3 +1568,17 @@ kbd {
   .menu-wide { padding-top: 8px; padding-bottom: 8px; }
   .menu-wide .menu-icon { width: 48px; height: 48px; }
 }
+
+/* 早押しボタンの「おす！」は、かならず横一列にする（iPad で1文字ずつ縦にならないように） */
+.buzz-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  white-space: nowrap;
+  word-break: keep-all;
+  line-height: 1;
+  width: clamp(190px, 28vmin, 260px);
+  font-size: clamp(32px, 5.4vmin, 52px);
+}
+.btn-send { white-space: nowrap; }
