@@ -116,45 +116,63 @@
       extra: '<circle cx="150" cy="82" r="7" fill="#ffd23f" stroke="' + INK + '" stroke-width="3"/><circle cx="50" cy="82" r="7" fill="#ffd23f" stroke="' + INK + '" stroke-width="3"/>' },
   ];
 
-  // ---------- アクセサリー（練習モードの累計点数でゲット） ----------
-  // slot: 'head'（頭）か 'face'（顔）。points: ゲットできる累計点数
+  // ---------- アクセサリー（ためた点でガチャを引いてゲット） ----------
+  // slot: 'head'（頭）か 'face'（顔）。rarity: ガチャのレア度（n ふつう / r レア / sr スーパーレア）
   const SK = `stroke="${INK}" stroke-width="3.5" stroke-linejoin="round"`;
   const ACCESSORIES = [
-    { id: 'hachimaki', icon: '30 50 160 70', name: 'はちまき', slot: 'head', points: 500,
+    { id: 'hachimaki', icon: '30 50 160 70', name: 'はちまき', slot: 'head', rarity: 'n',
       svg: () => `<path d="M40 84 Q100 58 160 84 L161 99 Q100 73 39 99Z" fill="#fff" ${SK}/><circle cx="100" cy="79" r="7" fill="#ff4f4f"/><path d="M158 86 L184 74 L180 93Z M158 94 L182 106 L167 113Z" fill="#fff" ${SK}/>` },
-    { id: 'megane', icon: '38 94 124 44', name: 'メガネ', slot: 'face', points: 1500,
+    { id: 'megane', icon: '38 94 124 44', name: 'メガネ', slot: 'face', rarity: 'n',
       svg: () => `<g fill="none" stroke="${INK}" stroke-width="4" stroke-linecap="round"><circle cx="78" cy="117" r="16" fill="#fff" fill-opacity=".3"/><circle cx="122" cy="117" r="16" fill="#fff" fill-opacity=".3"/><path d="M94 114 Q100 109 106 114 M62 113 L44 108 M138 113 L156 108"/></g>` },
-    { id: 'ribbon', icon: '94 18 88 60', name: 'リボン', slot: 'head', points: 3000,
+    { id: 'ribbon', icon: '94 18 88 60', name: 'リボン', slot: 'head', rarity: 'n',
       svg: () => `<g fill="#ff5c8d" ${SK} transform="translate(138 55) scale(1.35) translate(-138 -55)"><path d="M136 50 C114 28 104 66 132 60Z"/><path d="M140 50 C162 28 172 66 144 60Z"/><circle cx="138" cy="55" r="7"/></g>` },
-    { id: 'cap', icon: '30 16 165 86', name: '野球ぼう', slot: 'head', points: 5000,
+    { id: 'cap', icon: '30 16 165 86', name: '野球ぼう', slot: 'head', rarity: 'n',
       svg: () => `<path d="M40 88 C38 42 68 26 100 26 C132 26 162 42 160 88 C130 78 70 78 40 88Z" fill="#4d9dff" ${SK}/><path d="M100 30 L100 80" stroke="#2f74d8" stroke-width="3"/><path d="M96 84 C130 72 166 74 188 90 C160 97 126 97 96 92Z" fill="#2f74d8" ${SK}/><circle cx="100" cy="27" r="6" fill="#2f74d8" ${SK}/>` },
-    { id: 'sunglasses', icon: '38 96 124 40', name: 'サングラス', slot: 'face', points: 7500,
+    { id: 'sunglasses', icon: '38 96 124 40', name: 'サングラス', slot: 'face', rarity: 'r',
       svg: () => `<g ${SK}><rect x="57" y="104" width="39" height="26" rx="10" fill="${INK}"/><rect x="104" y="104" width="39" height="26" rx="10" fill="${INK}"/><path d="M96 112 L104 112 M57 110 L43 105 M143 110 L157 105" fill="none" stroke-linecap="round"/></g><path d="M65 111 L77 111 M112 111 L124 111" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"/>` },
-    { id: 'headphones', icon: '16 30 168 116', name: 'ヘッドホン', slot: 'head', points: 10000,
+    { id: 'headphones', icon: '16 30 168 116', name: 'ヘッドホン', slot: 'head', rarity: 'r',
       svg: () => `<path d="M38 116 C32 32 168 32 162 116" fill="none" stroke="${INK}" stroke-width="14" stroke-linecap="round"/><path d="M38 116 C32 32 168 32 162 116" fill="none" stroke="#8c6bff" stroke-width="7" stroke-linecap="round"/><rect x="22" y="98" width="27" height="42" rx="11" fill="#ff6b57" ${SK}/><rect x="151" y="98" width="27" height="42" rx="11" fill="#ff6b57" ${SK}/>` },
-    { id: 'nekomimi', icon: '40 10 120 70', name: 'ねこみみ', slot: 'head', points: 13000,
+    { id: 'nekomimi', icon: '40 10 120 70', name: 'ねこみみ', slot: 'head', rarity: 'r',
       svg: (c) => `<path d="M48 74 L54 18 L92 46Z" fill="${c.hairC}" ${SK}/><path d="M152 74 L146 18 L108 46Z" fill="${c.hairC}" ${SK}/><path d="M58 60 L61 32 L82 47Z" fill="#ffb3c8"/><path d="M142 60 L139 32 L118 47Z" fill="#ffb3c8"/>` },
-    { id: 'hige', icon: '56 120 88 30', name: 'ひげ', slot: 'face', points: 16000,
+    { id: 'hige', icon: '56 120 88 30', name: 'ひげ', slot: 'face', rarity: 'r',
       svg: () => `<path d="M100 137 C92 127 74 127 63 142 C76 136 88 142 100 140 C112 142 124 136 137 142 C126 127 108 127 100 137Z" fill="#4a3426" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>` },
-    { id: 'silkhat', icon: '36 -8 128 72', name: 'シルクハット', slot: 'head', points: 20000,
+    { id: 'silkhat', icon: '36 -8 128 72', name: 'シルクハット', slot: 'head', rarity: 'sr',
       svg: () => `<g transform="rotate(-8 100 44)" ${SK}><path d="M70 48 L74 4 L126 4 L130 48Z" fill="#3b3473"/><rect x="71" y="34" width="58" height="10" fill="#ff4f4f"/><ellipse cx="100" cy="50" rx="56" ry="10" fill="#3b3473"/></g>` },
-    { id: 'heart', icon: '44 118 112 36', name: 'ハートのほっぺ', slot: 'face', points: 25000,
+    { id: 'heart', icon: '44 118 112 36', name: 'ハートのほっぺ', slot: 'face', rarity: 'sr',
       svg: () => `<path d="M68 136 C60 125 50 136 68 149 C86 136 76 125 68 136Z" fill="#ff5c8d" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/><path d="M132 136 C124 125 114 136 132 149 C150 136 140 125 132 136Z" fill="#ff5c8d" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>` },
-    { id: 'halo', icon: '50 2 100 40', name: '天使のわっか', slot: 'head', points: 30000,
+    { id: 'halo', icon: '50 2 100 40', name: '天使のわっか', slot: 'head', rarity: 'sr',
       svg: () => `<ellipse cx="100" cy="22" rx="40" ry="11" fill="none" stroke="${INK}" stroke-width="12"/><ellipse cx="100" cy="22" rx="40" ry="11" fill="none" stroke="#ffe27a" stroke-width="6"/>` },
-    { id: 'crown', icon: '46 -2 108 62', name: '王冠', slot: 'head', points: 40000,
+    { id: 'crown', icon: '46 -2 108 62', name: '王冠', slot: 'head', rarity: 'sr',
       svg: () => `<path d="M62 54 L56 14 L80 34 L100 6 L120 34 L144 14 L138 54Z" fill="#ffc93c" ${SK}/><rect x="62" y="44" width="76" height="10" fill="#e8a90c" ${SK}/><g stroke="${INK}" stroke-width="2.5"><circle cx="100" cy="30" r="5" fill="#ff4f4f"/><circle cx="56" cy="14" r="5" fill="#4d9dff"/><circle cx="144" cy="14" r="5" fill="#4d9dff"/><circle cx="100" cy="6" r="5" fill="#2ec4a6"/></g>` },
   ];
 
   function getAccessory(id) { return ACCESSORIES.find((x) => x.id === id) || null; }
 
-  // 累計点数で、もうゲットしているアクセサリー
-  function ownedAccessories(totalPoints) {
-    return ACCESSORIES.filter((x) => (totalPoints || 0) >= x.points);
+  // ガチャのレア度と出やすさ（重み）。同じレア度の中では、どれも同じくらい出る
+  const RARITY = {
+    n: { label: 'ふつう', weight: 60 },
+    r: { label: 'レア', weight: 30 },
+    sr: { label: 'スーパーレア', weight: 10 },
+  };
+
+  // 持っているアクセサリー（owned は { id: true } の形）
+  function ownedAccessories(owned) {
+    const o = owned || {};
+    return ACCESSORIES.filter((x) => o[x.id]);
   }
-  // つぎにゲットできるアクセサリー（ぜんぶゲットしたら null）
-  function nextAccessory(totalPoints) {
-    return ACCESSORIES.find((x) => (totalPoints || 0) < x.points) || null;
+
+  // ガチャを1回引く。minRarity が 'r' ならレア以上だけから引く（10連の「レア以上1つ確定」用）
+  function drawAccessory(minRarity) {
+    const keys = minRarity === 'r' ? ['r', 'sr'] : ['n', 'r', 'sr'];
+    const total = keys.reduce((sum, k) => sum + RARITY[k].weight, 0);
+    let x = Math.random() * total;
+    let rarity = keys[keys.length - 1];
+    for (const k of keys) {
+      if (x < RARITY[k].weight) { rarity = k; break; }
+      x -= RARITY[k].weight;
+    }
+    const pool = ACCESSORIES.filter((a) => a.rarity === rarity);
+    return pool[Math.floor(Math.random() * pool.length)];
   }
 
   // アクセサリー1つだけの小さな絵（コレクション表示用）
@@ -267,6 +285,6 @@
 
   window.Avatar = {
     PARTS, DEFAULT, ACCESSORIES, normalize, render, random, load, save, renderCurrent,
-    getAccessory, ownedAccessories, nextAccessory, renderAccessoryIcon,
+    getAccessory, ownedAccessories, drawAccessory, RARITY, renderAccessoryIcon,
   };
 })();

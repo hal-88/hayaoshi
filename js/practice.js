@@ -4,7 +4,7 @@
   const MS_PER_CHAR = 150;   // 文字の速さ「ふつう」で固定（ランキングを公平にするため）
   const INTRO_MS = 1500;     // 「第○問」を見せる時間
   const AFTER_FULL_MS = 5000; // 全文が出てから時間切れまで
-  const ANSWER_SEC = 10;     // 10カウント
+  const ANSWER_SEC = 15;     // 答える時間（15カウント）
   const INPUT_DELAY_MS = 300; // 早おししてから入力欄が出るまで
   const REVEAL_MS = 3000;    // 正かいを見せる時間
 
@@ -262,7 +262,7 @@
       try { value = wanakana.toHiragana(value); } catch (e) { /* そのまま使う */ }
     }
     if (!Judge.normalizeAnswer(value)) return; // 空っぽのときは送らない
-    // 日本語入力で漢字に変換してしまったときは送らずに知らせる（10カウントはそのまま進む）
+    // 日本語入力で漢字に変換してしまったときは送らずに知らせる（15カウントはそのまま進む）
     if (Judge.hasKanji(value)) {
       setWarn(true);
       Effects.shake($('answer-box'));

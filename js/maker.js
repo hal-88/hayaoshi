@@ -56,7 +56,7 @@
 
   // つけられるもの：「なし」＋ゲットしたアクセサリー
   function choices(slot) {
-    return [''].concat(Avatar.ownedAccessories(Profile.totalPoints()).filter((x) => x.slot === slot).map((x) => x.id));
+    return [''].concat(Avatar.ownedAccessories(Profile.accessories()).filter((x) => x.slot === slot).map((x) => x.id));
   }
 
   function buildAcc() {
@@ -72,18 +72,18 @@
       }));
     });
 
-    // 全部のアクセサリー（まだのものは「？」）
-    const total = Profile.totalPoints();
+    // 全部のアクセサリー（まだのものは「？」とレア度だけ）
+    const ownedMap = Profile.accessories();
     const grid = $('acc-grid');
     grid.innerHTML = '';
     Avatar.ACCESSORIES.forEach((x) => {
-      const owned = total >= x.points;
+      const owned = !!ownedMap[x.id];
       const b = document.createElement('button');
-      b.className = 'acc-card' + (owned ? ' owned' : ' locked');
+      b.className = 'acc-card rarity-' + x.rarity + (owned ? ' owned' : ' locked');
       b.disabled = !owned;
       b.innerHTML = '<span class="acc-icon"></span><span class="acc-name"></span>';
       b.querySelector('.acc-icon').innerHTML = owned ? Avatar.renderAccessoryIcon(x.id) : '<span class="acc-q">？</span>';
-      b.querySelector('.acc-name').textContent = owned ? x.name : x.points.toLocaleString() + '点';
+      b.querySelector('.acc-name').textContent = owned ? x.name : Avatar.RARITY[x.rarity].label;
       if (owned) {
         b.addEventListener('click', () => {
           // もう一度おすと外す
@@ -96,17 +96,13 @@
       grid.appendChild(b);
     });
 
-    const next = Avatar.nextAccessory(total);
-    const prev = Avatar.ACCESSORIES.filter((x) => x.points <= total).pop();
-    const from = prev ? prev.points : 0;
-    if (next) {
-      $('acc-progress-text').innerHTML = '';
-      $('acc-progress-text').append('ためた点 ', strong(total.toLocaleString()), '点 ／ つぎの「' + next.name + '」まで あと ', strong((next.points - total).toLocaleString()), '点');
-      $('acc-progress-bar').style.width = Math.min(100, ((total - from) / (next.points - from)) * 100) + '%';
-    } else {
-      $('acc-progress-text').textContent = 'ためた点 ' + total.toLocaleString() + '点 ／ ぜんぶ ゲットしたよ！すごい！';
-      $('acc-progress-bar').style.width = '100%';
-    }
+    const have = Avatar.ownedAccessories(ownedMap).length;
+    const all = Avatar.ACCESSORIES.length;
+    const pulls = Profile.gachaPulls();
+    $('acc-progress-text').innerHTML = '';
+    $('acc-progress-text').append('集めた アクセサリー ', strong(have + ' / ' + all), ' ／ ガチャ ',
+      pulls ? strong(pulls + '回') : 'まだ', pulls ? ' 引けるよ' : '引けない（500点で1回）');
+    $('acc-progress-bar').style.width = (have / all) * 100 + '%';
   }
 
   function strong(t) {

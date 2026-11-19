@@ -4,7 +4,6 @@
   let lastSubjectKey = null;
   let nameMode = 'first'; // 'first'（はじめて）| 'rename'（名前を変える）
   let found = null;       // 名前で見つかった記録
-  let accQueue = [];      // これから見せる「アクセサリーゲット！」
 
   function show(screenId) {
     if (screenId === 'screen-menu') updateMenu();
@@ -17,6 +16,11 @@
     $('menu-name').textContent = Profile.name();
     $('menu-points').textContent = Profile.totalPoints().toLocaleString();
     $('test-badge').hidden = Store.mode() !== 'test';
+    // ガチャのカード
+    const pulls = Profile.gachaPulls();
+    const rest = Store.GACHA_COST - (Profile.totalPoints() % Store.GACHA_COST);
+    $('menu-gacha-sub').textContent = pulls ? pulls + '回 引けるよ！' : 'あと ' + rest + '点で 引けるよ';
+    $('btn-menu-gacha').classList.toggle('ready', pulls > 0);
   }
 
   // ---- 音のオン・オフ ----
@@ -190,6 +194,7 @@
     $('rp-plus').textContent = '+' + r.total;
     $('rp-bar').style.width = '0%';
     $('rp-next').textContent = '記録しています…';
+    $('btn-result-gacha').hidden = true;
     buildResultList(r.results);
 
     show('screen-result');
@@ -211,27 +216,24 @@
         $('result-rank').hidden = false;
       }
       showPoints(res);
-      if (res.newAccessories.length) {
-        accQueue = accQueue.concat(res.newAccessories);
-        setTimeout(showNextAcc, 1800);
-      }
     }).catch(() => {
       $('rp-next').textContent = '記録を 保存できませんでした（インターネットを たしかめてね）';
     });
   }
 
+  // ためた点と、つぎのガチャまで
   function showPoints(res) {
     const total = res.total;
+    const cost = Store.GACHA_COST;
     $('rp-total').textContent = total.toLocaleString();
-    const next = res.next;
-    const prev = Avatar.ACCESSORIES.filter((x) => x.points <= total).pop();
-    const from = prev ? prev.points : 0;
-    if (next) {
-      $('rp-next').textContent = 'つぎの アクセサリー「' + next.name + '」まで あと ' + (next.points - total).toLocaleString() + '点';
-      $('rp-bar').style.width = Math.min(100, ((total - from) / (next.points - from)) * 100) + '%';
-    } else {
-      $('rp-next').textContent = 'アクセサリーを ぜんぶ ゲットしたよ！すごい！';
+    if (res.pulls > 0) {
+      $('rp-next').textContent = 'ガチャが ' + res.pulls + '回 引けるよ！';
       $('rp-bar').style.width = '100%';
+      $('btn-result-gacha').hidden = false;
+      setTimeout(() => Sound.play('sparkle'), 900);
+    } else {
+      $('rp-next').textContent = 'ガチャまで あと ' + (cost - total % cost) + '点';
+      $('rp-bar').style.width = ((total % cost) / cost) * 100 + '%';
     }
   }
 
@@ -248,28 +250,6 @@
       li.querySelector('.ri-pts').textContent = x.points + '点';
       list.appendChild(li);
     });
-  }
-
-  // ---- アクセサリーゲット！ ----
-  let accShowing = null;
-  function showNextAcc() {
-    if (accShowing || !accQueue.length) return;
-    const x = accQueue.shift();
-    accShowing = x;
-    const eq = Object.assign({}, Profile.equipped(), { [x.slot]: x.id });
-    $('acc-modal-avatar').innerHTML = Avatar.render(Avatar.load() || Avatar.DEFAULT, { equipped: eq });
-    $('acc-modal-name').textContent = '「' + x.name + '」';
-    $('acc-modal').hidden = false;
-    Sound.play('fanfare');
-    setTimeout(() => Sound.play('sparkle'), 900);
-    Effects.sparkle($('acc-modal').querySelector('.modal-card'));
-    Effects.confetti(80);
-  }
-  function closeAcc() {
-    $('acc-modal').hidden = true;
-    accShowing = null;
-    $('result-avatar').innerHTML = Avatar.renderCurrent();
-    setTimeout(showNextAcc, 300);
   }
 
   // キャラクターづくり（メニューから）
@@ -290,12 +270,13 @@
     show('screen-avatar');
   }
 
-  window.App = { show };
+  window.App = { show, openMaker: openMakerFromMenu };
 
   function init() {
     Practice.setup();
     Maker.setup();
     Battle.setup();
+    Gacha.setup();
     updateSoundButton();
 
     $('btn-start').addEventListener('click', onStart);
@@ -326,13 +307,8 @@
       Ranking.open();
     });
 
-    $('btn-acc-wear').addEventListener('click', async () => {
-      const x = accShowing;
-      Sound.play('correct');
-      if (x) { try { await Profile.equipOne(x.id); } catch (e) { /* つけられなくても続ける */ } }
-      closeAcc();
-    });
-    $('btn-acc-later').addEventListener('click', () => { Sound.play('tap'); closeAcc(); });
+    $('btn-menu-gacha').addEventListener('click', () => { Sound.play('tap'); Gacha.open(); });
+    $('btn-result-gacha').addEventListener('click', () => { Sound.play('tap'); Gacha.open(); });
 
     $('sound-toggle').addEventListener('click', () => {
       Sound.unlock();

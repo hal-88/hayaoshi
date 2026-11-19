@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=9">
+  <link rel="stylesheet" href="css/style.css?v=10">
 </head>
 <body>
   <div id="app">
@@ -95,6 +95,15 @@
           </span>
           <span class="menu-label">キャラクター</span>
           <span class="menu-sub">作りなおす・アクセサリー</span>
+        </button>
+        <button id="btn-menu-gacha" class="menu-card menu-wide" style="--c:#c9b6ff">
+          <span class="menu-icon">
+            <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="18" r="14" fill="#e9f4ff" stroke="#2b2463" stroke-width="3"/><circle cx="18" cy="16" r="4.5" fill="#ff5c8d" stroke="#2b2463" stroke-width="2"/><circle cx="29" cy="14" r="4.5" fill="#ffc93c" stroke="#2b2463" stroke-width="2"/><circle cx="25" cy="24" r="4.5" fill="#2ec4a6" stroke="#2b2463" stroke-width="2"/><rect x="9" y="28" width="30" height="16" rx="4" fill="#ff6b57" stroke="#2b2463" stroke-width="3"/><circle cx="24" cy="36" r="3.5" fill="#fff" stroke="#2b2463" stroke-width="2"/></svg>
+          </span>
+          <span class="menu-wide-text">
+            <span class="menu-label">アクセサリーガチャ</span>
+            <span id="menu-gacha-sub" class="menu-sub">500点で 1回 引けるよ</span>
+          </span>
         </button>
       </div>
       <button class="btn btn-ghost" data-go="screen-top">もどる</button>
@@ -212,7 +221,7 @@
                 <circle class="ring-bg" cx="60" cy="60" r="50"/>
                 <circle class="ring" cx="60" cy="60" r="50" pathLength="100"/>
               </svg>
-              <div id="countdown" class="countdown">10</div>
+              <div id="countdown" class="countdown">15</div>
             </div>
             <div class="answer-col">
               <div id="answer-box" class="answer-box">
@@ -269,7 +278,10 @@
       <div id="result-points" class="result-points">
         <div class="rp-line">ためた点 <b id="rp-total">-</b>点 <span id="rp-plus" class="rp-plus"></span></div>
         <div class="bar"><div id="rp-bar" class="bar-fill"></div></div>
-        <div id="rp-next" class="rp-next">記録しています…</div>
+        <div class="rp-foot">
+          <div id="rp-next" class="rp-next">記録しています…</div>
+          <button id="btn-result-gacha" class="btn btn-small btn-gacha-go" hidden>🎁 ガチャを引く</button>
+        </div>
       </div>
       <div class="result-buttons">
         <button id="btn-again" class="btn btn-primary">もう一回</button>
@@ -373,7 +385,7 @@
                 <circle class="ring-bg" cx="60" cy="60" r="50"/>
                 <circle class="ring" cx="60" cy="60" r="50" pathLength="100"/>
               </svg>
-              <div id="b-countdown" class="countdown">10</div>
+              <div id="b-countdown" class="countdown">15</div>
             </div>
             <div class="answer-col">
               <div id="b-answer-box" class="answer-box">
@@ -414,15 +426,51 @@
       <div class="stamp-slot"></div>
     </section>
 
-    <div id="acc-modal" class="modal" hidden>
-      <div class="modal-card">
+    <!-- アクセサリーガチャ -->
+    <section id="screen-gacha" class="screen">
+      <h2 class="screen-title">アクセサリーガチャ</h2>
+      <div class="gacha-stage">
+        <div id="gacha-machine" class="gacha-machine" aria-hidden="true">
+          <svg viewBox="0 0 200 260">
+            <ellipse cx="100" cy="250" rx="80" ry="8" fill="#2b2463" opacity=".18"/>
+            <rect x="34" y="128" width="132" height="112" rx="18" fill="#ff6b57" stroke="#2b2463" stroke-width="6"/>
+            <rect x="34" y="128" width="132" height="22" fill="#e8513f" stroke="#2b2463" stroke-width="6"/>
+            <circle cx="100" cy="78" r="66" fill="#e9f4ff" stroke="#2b2463" stroke-width="6"/>
+            <g class="gacha-balls" stroke="#2b2463" stroke-width="4">
+              <circle cx="70" cy="100" r="16" fill="#ff5c8d"/><circle cx="104" cy="108" r="16" fill="#ffc93c"/><circle cx="136" cy="98" r="16" fill="#2ec4a6"/>
+              <circle cx="86" cy="72" r="16" fill="#4d9dff"/><circle cx="120" cy="70" r="16" fill="#8c6bff"/><circle cx="100" cy="42" r="16" fill="#ff8a3d"/>
+            </g>
+            <path d="M58 40 C66 26 80 18 94 16" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" opacity=".9"/>
+            <g class="gacha-knob"><circle cx="100" cy="180" r="22" fill="#fff" stroke="#2b2463" stroke-width="6"/><rect x="80" y="174" width="40" height="12" rx="6" fill="#ffc93c" stroke="#2b2463" stroke-width="4"/></g>
+            <rect x="72" y="212" width="56" height="20" rx="8" fill="#2b2463"/>
+          </svg>
+        </div>
+        <div class="gacha-side">
+          <div class="gacha-points">ためた点 <b id="gacha-points">0</b>点</div>
+          <div id="gacha-can" class="gacha-can"></div>
+          <div class="gacha-buttons">
+            <button id="btn-gacha-1" class="btn btn-primary gacha-btn"><span>1回 引く</span><small>500点</small></button>
+            <button id="btn-gacha-10" class="btn gacha-btn gacha-btn-10"><span>10連ガチャ</span><small>5000点・レア以上 1つ確定！</small></button>
+          </div>
+          <div class="gacha-rates">出やすさ：<span class="r-n">ふつう 60%</span>・<span class="r-r">レア 30%</span>・<span class="r-sr">スーパーレア 10%</span></div>
+          <div id="gacha-owned" class="gacha-owned"></div>
+        </div>
+      </div>
+      <div class="name-buttons">
+        <button class="btn btn-ghost" data-go="screen-menu">メニューへ</button>
+        <button id="btn-gacha-maker" class="btn btn-sub">キャラクターで つける</button>
+      </div>
+    </section>
+
+    <div id="gacha-result" class="modal gacha-modal" hidden>
+      <div class="modal-card gacha-card">
         <div class="modal-rays" aria-hidden="true"></div>
-        <div class="modal-title">アクセサリー ゲット！</div>
-        <div id="acc-modal-avatar" class="avatar-badge modal-avatar"></div>
-        <div id="acc-modal-name" class="modal-name"></div>
+        <div id="gacha-result-title" class="modal-title">ガチャの けっか</div>
+        <div id="gacha-result-list" class="gacha-list"></div>
+        <p id="gacha-result-sum" class="gacha-sum"></p>
         <div class="name-buttons">
-          <button id="btn-acc-later" class="btn btn-ghost">とじる</button>
-          <button id="btn-acc-wear" class="btn btn-primary">つけてみる！</button>
+          <button id="btn-gacha-close" class="btn btn-ghost">とじる</button>
+          <button id="btn-gacha-wear" class="btn btn-primary" hidden>つけてみる！</button>
         </div>
       </div>
     </div>
@@ -432,19 +480,20 @@
 
   <!-- ローマ字 → ひらがな（WanaKana, MIT License） -->
   <script src="https://cdn.jsdelivr.net/npm/wanakana@5.3.1/wanakana.min.js"></script>
-  <script src="js/firebase-config.js?v=9"></script>
-  <script src="js/sound.js?v=9"></script>
-  <script src="js/judge.js?v=9"></script>
-  <script src="js/avatar.js?v=9"></script>
-  <script src="js/store.js?v=9"></script>
-  <script src="js/profile.js?v=9"></script>
-  <script src="js/questions.js?v=9"></script>
-  <script src="js/reader.js?v=9"></script>
-  <script src="js/effects.js?v=9"></script>
-  <script src="js/practice.js?v=9"></script>
-  <script src="js/maker.js?v=9"></script>
-  <script src="js/ranking.js?v=9"></script>
-  <script src="js/battle.js?v=9"></script>
-  <script src="js/app.js?v=9"></script>
+  <script src="js/firebase-config.js?v=10"></script>
+  <script src="js/sound.js?v=10"></script>
+  <script src="js/judge.js?v=10"></script>
+  <script src="js/avatar.js?v=10"></script>
+  <script src="js/store.js?v=10"></script>
+  <script src="js/profile.js?v=10"></script>
+  <script src="js/questions.js?v=10"></script>
+  <script src="js/reader.js?v=10"></script>
+  <script src="js/effects.js?v=10"></script>
+  <script src="js/practice.js?v=10"></script>
+  <script src="js/maker.js?v=10"></script>
+  <script src="js/ranking.js?v=10"></script>
+  <script src="js/battle.js?v=10"></script>
+  <script src="js/gacha.js?v=10"></script>
+  <script src="js/app.js?v=10"></script>
 </body>
 </html>

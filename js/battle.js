@@ -12,7 +12,7 @@
   const FIRST_INTRO_MS = 2400;  // 1問目の前（ファンファーレのぶん長め）
   const INTRO_MS = 1500;        // 「第○問」を見せる時間
   const AFTER_FULL_MS = 5000;   // 全文が出てから時間切れまで
-  const ANSWER_SEC = 10;        // 10カウント
+  const ANSWER_SEC = 15;        // 答える時間（15カウント）
   const INPUT_DELAY_MS = 300;   // 早押ししてから入力欄が出るまで
   const REVEAL_MS = 3000;       // 正かいを見せる時間
   const MISS_MS = 1800;         // 「ざんねん」を見せてから続きを読む
@@ -725,7 +725,7 @@
         }
       }
       showAnswerStage(cur.buzzer.uid);
-      // 10カウント
+      // 15カウント
       const left = cur.buzzer.deadline - t;
       const count = Math.max(0, Math.min(ANSWER_SEC, Math.ceil(left / 1000)));
       $('b-countdown-wrap').style.setProperty('--p', Math.max(0, Math.min(1, left / (ANSWER_SEC * 1000))));
@@ -927,7 +927,7 @@
       try { value = wanakana.toHiragana(value); } catch (e) { /* そのまま使う */ }
     }
     if (!Judge.normalizeAnswer(value)) return; // 空っぽは送らない
-    // 日本語入力で漢字に変換してしまったときは送らずに知らせる（10カウントはそのまま進む）
+    // 日本語入力で漢字に変換してしまったときは送らずに知らせる（15カウントはそのまま進む）
     if (Judge.hasKanji(value)) {
       setWarn(true);
       Effects.shake($('b-answer-box'));
@@ -1009,7 +1009,7 @@
         }));
       }
     } else if (cur.phase === 'answering' && cur.buzzer) {
-      // 答える人の回線が切れて、10カウントが終わっても返事がないとき
+      // 答える人の回線が切れて、15カウントが終わっても返事がないとき
       if (t > cur.buzzer.deadline + 2500) hostRun(() => judge(cur.buzzer.uid, cur, '', false));
     } else if (cur.phase === 'reveal') {
       if (t >= (cur.revealAt || 0) + REVEAL_MS) hostRun(() => nextOrFinish(cur.index));

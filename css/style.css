@@ -1471,3 +1471,100 @@ kbd {
   text-align: center;
   animation: pop-in .3s cubic-bezier(.2, 1.6, .4, 1);
 }
+
+/* ===== アクセサリーガチャ ===== */
+.menu-wide { grid-column: 1 / -1; flex-direction: row; justify-content: center; gap: 18px; padding-top: clamp(10px, 1.8vmin, 16px); padding-bottom: clamp(10px, 1.8vmin, 16px); }
+.menu-wide .menu-icon { width: clamp(52px, 8vmin, 68px); height: clamp(52px, 8vmin, 68px); }
+.menu-wide-text { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.menu-card.ready .menu-sub { background: var(--yellow); animation: breathe 1.6s ease-in-out infinite; }
+.rp-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.btn-gacha-go { background: #c9b6ff; animation: breathe 1.6s ease-in-out infinite; }
+
+#screen-gacha { gap: clamp(12px, 2.4vh, 22px); }
+.gacha-stage { display: flex; align-items: center; justify-content: center; gap: clamp(18px, 5vw, 56px); width: min(900px, 100%); }
+.gacha-machine { flex: 0 0 auto; width: clamp(170px, 30vmin, 260px); }
+.gacha-machine svg { width: 100%; height: auto; display: block; overflow: visible; }
+.gacha-knob { transform-origin: 100px 180px; transform-box: view-box; }
+.gacha-balls { transform-origin: 100px 78px; transform-box: view-box; }
+.gacha-machine.turning { animation: machine-wiggle .35s ease-in-out 3; }
+.gacha-machine.turning .gacha-knob { animation: knob-turn 1.05s ease-in-out; }
+.gacha-machine.turning .gacha-balls { animation: balls-shake .25s linear 4; }
+@keyframes machine-wiggle { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-3deg); } 75% { transform: rotate(3deg); } }
+@keyframes knob-turn { to { transform: rotate(360deg); } }
+@keyframes balls-shake { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-4px, 3px); } 50% { transform: translate(3px, -3px); } 75% { transform: translate(-2px, -2px); } }
+.gacha-side { flex: 1; min-width: 0; max-width: 460px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.gacha-points { font-weight: 800; font-size: clamp(18px, 3vmin, 24px); }
+.gacha-points b { font-family: var(--display); font-weight: 400; font-size: 1.5em; color: var(--coral); -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; }
+.gacha-can { padding: 4px 16px; border-radius: 999px; background: #ece9f5; color: var(--ink-soft); font-weight: 800; text-align: center; }
+.gacha-can.ready { background: var(--yellow); color: var(--ink); border: 2.5px solid var(--ink); }
+.gacha-buttons { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+.gacha-btn { display: flex; flex-direction: column; align-items: center; line-height: 1.25; padding: 10px 20px; border-radius: 22px; }
+.gacha-btn span { font-family: var(--display); font-weight: 400; font-size: clamp(22px, 3.8vmin, 30px); letter-spacing: .04em; }
+.gacha-btn small { font-size: 14px; font-weight: 800; }
+.gacha-btn-10 { background: linear-gradient(180deg, #d8c9ff, #b69dff); }
+.gacha-btn:disabled { background: #ece9f5; color: #a49fc4; border-color: #b9b4d4; box-shadow: 0 4px 0 #b9b4d4; }
+.gacha-rates { font-size: 13px; font-weight: 800; color: var(--ink-soft); text-align: center; }
+.r-n { color: #6c6699; } .r-r { color: #2c7be5; } .r-sr { color: #d18b00; }
+.gacha-owned { font-weight: 800; color: var(--ink-soft); }
+
+/* 結果のまど */
+.gacha-card { width: min(780px, 100%); overflow: hidden; }
+.gacha-modal.is-sr .modal-rays { background: repeating-conic-gradient(#ffe27a 0deg 10deg, transparent 10deg 20deg); }
+.gacha-list { position: relative; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; width: 100%; }
+.gacha-list.one { grid-template-columns: minmax(0, 260px); justify-content: center; }
+.gacha-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 4px 8px;
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  background: #f4f2fb;
+  box-shadow: 0 4px 0 var(--ink);
+  animation: gacha-pop .45s cubic-bezier(.2, 1.6, .4, 1) both;
+}
+@keyframes gacha-pop { from { transform: scale(.2) rotate(-12deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.gacha-item.rarity-r { background: #dcebff; }
+.gacha-item.rarity-sr { background: linear-gradient(160deg, #fff6c9, #ffd65c); box-shadow: 0 4px 0 var(--ink), 0 0 16px 4px rgba(255, 201, 60, .8); }
+.gi-rarity { font-size: 11px; font-weight: 800; padding: 0 8px; border-radius: 999px; background: #fff; border: 2px solid var(--ink); }
+.rarity-r .gi-rarity { background: var(--sky); color: #fff; }
+.rarity-sr .gi-rarity { background: var(--coral); color: #fff; }
+.gi-icon { width: 100%; height: 48px; display: flex; align-items: center; justify-content: center; }
+.gi-icon svg { width: 100%; height: 100%; }
+.gi-name { font-size: 13px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.gi-tag { font-size: 11px; font-weight: 800; color: var(--ink-soft); }
+.is-new .gi-tag { color: #fff; background: var(--pink); padding: 0 8px; border-radius: 999px; }
+.gacha-list.one .gacha-item { padding: 12px 12px 14px; gap: 6px; }
+.gacha-list.one .gi-icon { height: 170px; }
+.gacha-list.one .gi-icon svg { width: 170px; height: 170px; border: 4px solid var(--ink); border-radius: 50%; background: #fff; }
+.gacha-list.one .gi-name { font-size: 22px; }
+.gacha-list.one .gi-rarity { font-size: 15px; }
+.gacha-list.one .gi-tag { font-size: 15px; }
+.gacha-sum { position: relative; margin: 0; font-weight: 800; text-align: center; }
+
+/* キャラづくりのアクセサリー：レア度の色 */
+.acc-card.locked.rarity-r .acc-name { color: #2c7be5; }
+.acc-card.locked.rarity-sr .acc-name { color: #d18b00; }
+.acc-card.owned.rarity-r { border-color: #2c7be5; }
+.acc-card.owned.rarity-sr { background: #fff6c9; }
+
+@media (orientation: portrait) {
+  .gacha-stage { flex-direction: column; gap: 14px; }
+  .gacha-list { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .gacha-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gacha-machine.turning, .gacha-machine.turning .gacha-knob, .gacha-machine.turning .gacha-balls, .gacha-item, .btn-gacha-go, .menu-card.ready .menu-sub { animation: none; }
+}
+@media (orientation: landscape) and (max-height: 780px) {
+  #screen-menu { gap: 12px; }
+  .menu-grid { gap: 12px; }
+  .menu-card { padding-top: 10px; padding-bottom: 12px; gap: 4px; }
+  .menu-card .menu-icon { width: 56px; height: 56px; }
+  .menu-wide { padding-top: 8px; padding-bottom: 8px; }
+  .menu-wide .menu-icon { width: 48px; height: 48px; }
+}

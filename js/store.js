@@ -136,10 +136,46 @@
   async function addPoints(key, name, delta) {
     const v = await transaction('players/' + key + '/totalPoints', (cur) => (Number(cur) || 0) + delta);
     const total = Number(v) || 0;
-    const acc = {};
-    Avatar.ownedAccessories(total).forEach((x) => { acc[x.id] = true; });
-    await savePlayer(key, { name, accessories: acc });
+    await savePlayer(key, { name });
     return total;
+  }
+
+  // ---------- ガチャ ----------
+  // ためた点を 500点 × 回数 へらして、アクセサリーを引く。
+  // 点をへらすのとアクセサリーをふやすのを1つのトランザクションでするので、2台で同時に引いても点がずれない。
+  const GACHA_COST = 500;
+  async function pullGacha(key, count) {
+    let results = null;
+    let reason = null;
+    const v = await transaction('players/' + key, (cur) => {
+      results = null;
+      reason = null;
+      if (cur === null) return null; // サーバーで たしかめてもらう（ほんとうに無ければ何も起きない）
+      const cost = GACHA_COST * count;
+      const total = Number(cur.totalPoints) || 0;
+      if (total < cost) { reason = 'points'; return; }
+      const draws = [];
+      for (let i = 0; i < count; i++) draws.push(Avatar.drawAccessory());
+      // 10連は、レア以上が1つもなければ最後の1つをレア以上にする
+      if (count >= 10 && !draws.some((a) => a.rarity !== 'n')) draws[draws.length - 1] = Avatar.drawAccessory('r');
+      const acc = Object.assign({}, cur.accessories || {});
+      results = draws.map((a) => {
+        const isNew = !acc[a.id];
+        acc[a.id] = true;
+        return { acc: a, isNew };
+      });
+      cur.totalPoints = total - cost;
+      cur.accessories = acc;
+      cur.updatedAt = Date.now();
+      return cur;
+    });
+    if (!v && !reason) reason = 'none';
+    return {
+      results: reason ? null : results,
+      reason,
+      totalPoints: v ? Number(v.totalPoints) || 0 : 0,
+      accessories: (v && v.accessories) || {},
+    };
   }
 
   // ---------- ランキング ----------
@@ -201,7 +237,7 @@
 
   window.Store = {
     SUBJECT_KEYS, init, hasConfig, normalizeName, nameKey,
-    getPlayer, savePlayer, addPoints,
+    getPlayer, savePlayer, addPoints, pullGacha, GACHA_COST,
     submitScore, getBest, getAllBest, getRanking, getRank, updateRankingProfile,
     mode: () => mode, uid: () => uid, db: () => db,
   };
