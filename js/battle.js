@@ -924,22 +924,25 @@
     if (view.sentFor === k) return;
     let value = $('b-answer-input').value;
     if (window.wanakana) {
-      try { value = wanakana.toHiragana(value); } catch (e) { /* そのまま使う */ }
+      // カタカナの「ー」は母音にしない（「ペリー」が「ぺりい」にならないように）
+      try { value = wanakana.toHiragana(value, { convertLongVowelMark: false }); } catch (e) { /* そのまま使う */ }
     }
     if (!Judge.normalizeAnswer(value)) return; // 空っぽは送らない
-    // 日本語入力で漢字に変換してしまったときは送らずに知らせる（15カウントはそのまま進む）
-    if (Judge.hasKanji(value)) {
+    const q = questionMap[cur.questionId];
+    if (!q) return;
+    const ok = Judge.isCorrect(value, q);
+    // 漢字の答えも正解にしている。漢字が合っていないとき（変換で別の漢字になった など）は、
+    // まちがいにせず「ひらがなで入れてね」と知らせる（15カウントはそのまま進む）
+    if (!ok && Judge.hasKanji(value)) {
       setWarn(true);
       Effects.shake($('b-answer-box'));
       Sound.play('tap');
       focusInput();
       return;
     }
-    const q = questionMap[cur.questionId];
-    if (!q) return;
     view.sentFor = k;
     $('b-answer-input').blur();
-    judge(uid, cur, value.slice(0, 40), Judge.isCorrect(value, q));
+    judge(uid, cur, value.slice(0, 40), ok);
   }
 
   // 答えの結果を書きこむ（答えた人の端末。答えた人がいなくなったときはホストが「ざんねん」にする）

@@ -261,18 +261,20 @@
     let value = input.value;
     // ローマ字の最後の「n」なども、ひらがなに直してから判定する
     if (window.wanakana) {
-      try { value = wanakana.toHiragana(value); } catch (e) { /* そのまま使う */ }
+      // カタカナの「ー」は母音にしない（「ペリー」が「ぺりい」にならないように）
+      try { value = wanakana.toHiragana(value, { convertLongVowelMark: false }); } catch (e) { /* そのまま使う */ }
     }
     if (!Judge.normalizeAnswer(value)) return; // 空っぽのときは送らない
-    // 日本語入力で漢字に変換してしまったときは送らずに知らせる（15カウントはそのまま進む）
-    if (Judge.hasKanji(value)) {
+    const ok = Judge.isCorrect(value, state.q);
+    // 漢字の答えも正解にしている。漢字が合っていないとき（変換で別の漢字になった など）は、
+    // まちがいにせず「ひらがなで入れてね」と知らせる（15カウントはそのまま進む）
+    if (!ok && Judge.hasKanji(value)) {
       setWarn(true);
       Effects.shake($('answer-box'));
       Sound.play('tap');
       focusInput();
       return;
     }
-    const ok = Judge.isCorrect(value, state.q);
     reveal({ kind: ok ? 'correct' : 'wrong', input: value });
   }
 
