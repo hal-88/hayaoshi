@@ -1704,4 +1704,4 @@ kbd {
 }
 
 /* メニューの「アクセサリー／ガチャ」は、ことばの切れめで2行にする */
-.menu-label-2 { line-height: 1.15; text-align: left; }
+.menu-label-2 { line-height: 1.15; text-align: center; }
