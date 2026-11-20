@@ -277,6 +277,12 @@
     Maker.setup();
     Battle.setup();
     Gacha.setup();
+    // 見えない入力欄で Enter・スペースを受けとったら早押し
+    Keys.setup();
+    Keys.onBuzz(() => {
+      if (Practice.isPlaying()) Practice.buzzKey();
+      else Battle.buzzKey();
+    });
     updateSoundButton();
 
     $('btn-start').addEventListener('click', onStart);

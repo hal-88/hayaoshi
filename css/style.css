@@ -1582,3 +1582,17 @@ kbd {
   font-size: clamp(32px, 5.4vmin, 52px);
 }
 .btn-send { white-space: nowrap; }
+
+/* キーボードのキーを受けとる見えない入力欄（画面には見えない） */
+.key-catcher {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  font-size: 16px; /* 16px より小さいと iPad が画面を拡大してしまう */
+  pointer-events: none;
+}

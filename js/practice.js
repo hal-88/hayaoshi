@@ -54,12 +54,16 @@
     // 早押しはスペースキー（Enter でもおせる）
     document.addEventListener('keydown', (e) => {
       if (!state) return;
-      const isSpace = e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space';
-      if (!isSpace && e.key !== 'Enter') return;
+      if (!Keys.isBuzzKey(e)) return;
       if (e.target === $('answer-input')) return; // 入力欄のキーは下で受ける
       e.preventDefault();
       if (e.repeat) return;
       buzz();
+    });
+
+    // 画面をさわったら、見えない入力欄にカーソルを入れなおす（キーボードで早押しできるように）
+    $('screen-play').addEventListener('pointerdown', (e) => {
+      if (state && state.phase !== 'answering' && !e.target.closest('input')) Keys.focus();
     });
 
     const input = $('answer-input');
@@ -86,6 +90,7 @@
 
   function start(subjectKey, list, finishCallback) {
     stop();
+    Keys.focus(); // ボタンをおしたこの場で、見えない入力欄にカーソルを入れておく（iPad のキーボード用）
     onFinish = finishCallback;
     const subject = Questions.getSubject(subjectKey);
     state = {
@@ -115,6 +120,7 @@
     if (reader) reader.stop();
     state = null;
     $('answer-input').blur();
+    Keys.blur();
     document.getElementById('app').classList.remove('is-playing');
   }
 
@@ -148,7 +154,7 @@
     $('full-timer').hidden = true;
     showStage('buzz');
     $('btn-buzz').disabled = true;
-    $('answer-input').blur();
+    Keys.focus(); // 問題の間は、見えない入力欄で Enter・スペースを受けとる
 
     $('intro-text').textContent = '第' + (state.index + 1) + '問';
     $('intro').hidden = false;
@@ -282,8 +288,7 @@
     if (!state) return;
     state.phase = 'reveal';
     const q = state.q;
-    const input = $('answer-input');
-    input.blur();
+    Keys.focus(); // 答えの欄から、見えない入力欄にカーソルをもどす
     $('full-timer').hidden = true;
     reader.showAll();
 
@@ -379,5 +384,5 @@
       '</svg>';
   }
 
-  window.Practice = { setup, start, stop, calcPoints, isPlaying: () => !!state };
+  window.Practice = { setup, start, stop, calcPoints, isPlaying: () => !!state, buzzKey: () => buzz() };
 })();

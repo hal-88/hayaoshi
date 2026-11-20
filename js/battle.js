@@ -171,6 +171,7 @@
   }
 
   async function createRoom() {
+    Keys.focus(); // ボタンをおしたこの場で、見えない入力欄にカーソルを入れておく（iPad のキーボード用）
     Sound.play('tap');
     setLobbyBusy(true);
     $('lobby-error').hidden = true;
@@ -207,6 +208,7 @@
   async function joinRoom() {
     const c = $('room-code-input').value.normalize('NFKC').replace(/\D/g, '');
     if (c.length !== 4) { lobbyError('4けたの 数字を 入れてね'); return; }
+    Keys.focus(); // ボタンをおしたこの場で、見えない入力欄にカーソルを入れておく（iPad のキーボード用）
     Sound.play('tap');
     setLobbyBusy(true);
     $('lobby-error').hidden = true;
@@ -251,7 +253,7 @@
 
   // ---------- 部屋に入る・出る ----------
   function enter(c) {
-    detach();
+    detach(true); // 見えない入力欄のカーソルはそのまま（このあと試合が始まっても、キーで早押しできるように）
     code = c;
     try { localStorage.setItem(LAST_ROOM_KEY, c); } catch (e) { /* 何もしない */ }
     roomRef = db.ref('rooms/' + c);
@@ -267,7 +269,7 @@
     Sound.play('correct');
   }
 
-  function detach() {
+  function detach(keepKeys) {
     if (roomRef) {
       roomRef.off();
       roomRef.child('stamps').off();
@@ -279,6 +281,7 @@
     room = null;
     code = null;
     $('b-answer-input').blur();
+    if (!keepKeys) Keys.blur();
     document.getElementById('app').classList.remove('is-playing');
   }
 
@@ -344,7 +347,7 @@
     } else if (room.status === 'finished') {
       go('screen-bresult');
       document.getElementById('app').classList.remove('is-playing');
-      $('b-answer-input').blur();
+      if (document.activeElement === $('b-answer-input')) Keys.focus();
       renderResult();
     }
     renderCards();
@@ -423,6 +426,7 @@
 
   async function startGame() {
     if (!isHost() || !room) return;
+    Keys.focus();
     Sound.play('tap');
     const btns = [$('btn-room-start'), $('btn-br-again')];
     btns.forEach((b) => { b.disabled = true; });
@@ -668,7 +672,7 @@
       view.pending = null;
       view.sentFor = null;
       reader.setText(q.question, speedMs());
-      $('b-answer-input').blur();
+      Keys.focus();
       $('b-answer-input').value = '';
       if (cur.index === 0) Sound.play('fanfare');
     }
@@ -699,8 +703,8 @@
         $('b-btn-buzz').disabled = !can;
         $('b-buzz-hint').innerHTML = myLocked
           ? 'この問題は もう おせないよ。ほかの人の 答えを まとう'
-          : 'キーボードの <kbd>スペース</kbd> でも おせるよ';
-        if (document.activeElement === $('b-answer-input')) $('b-answer-input').blur();
+          : 'キーボードの <kbd>Enter</kbd> か <kbd>スペース</kbd> でも おせるよ';
+        Keys.focus(); // 問題の間は、見えない入力欄で Enter・スペースを受けとる
       }
 
       // 全文が出たら 5秒の時計
@@ -751,7 +755,7 @@
       reader.showAll();
       showReveal(cur, q);
       view.lastCount = null;
-      if (document.activeElement === $('b-answer-input')) $('b-answer-input').blur();
+      if (document.activeElement === $('b-answer-input')) Keys.focus();
     }
   }
 
@@ -895,12 +899,12 @@
         // ほかの人が先だった
         view.pending = null;
         view.stage = null;
-        $('b-answer-input').blur();
+        Keys.focus();
       }
     }).catch(() => {
       view.pending = null;
       view.stage = null;
-      $('b-answer-input').blur();
+      Keys.focus();
     });
   }
 
@@ -941,7 +945,7 @@
       return;
     }
     view.sentFor = k;
-    $('b-answer-input').blur();
+    Keys.focus();
     judge(uid, cur, value.slice(0, 40), ok);
   }
 
@@ -1177,10 +1181,16 @@
       if (view.pending) focusInput();
     });
 
-    // 早押しはスペースキー（Enter でもおせる）
+    // 画面をさわったら、見えない入力欄にカーソルを入れなおす（キーボードで早押しできるように）
+    $('screen-battle').addEventListener('pointerdown', (e) => {
+      const cur = room && room.current;
+      const answering = cur && cur.phase === 'answering' && cur.buzzer && cur.buzzer.uid === uid;
+      if (!answering && !view.pending && !e.target.closest('input')) Keys.focus();
+    });
+
+    // 早押しは Enter かスペースキー
     document.addEventListener('keydown', (e) => {
-      const isSpace = e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space';
-      if (!isSpace && e.key !== 'Enter') return;
+      if (!Keys.isBuzzKey(e)) return;
       if (activeScreen() !== 'screen-battle') return;
       if (e.target === $('b-answer-input')) return;
       e.preventDefault();
@@ -1212,7 +1222,7 @@
   }
 
   window.Battle = {
-    setup, openLobby, leave,
+    setup, openLobby, leave, buzzKey: () => tryBuzz(),
     inRoom: () => !!code,
     // たしかめ用
     _debug: () => ({ code, uid, offset, room, view }),
