@@ -1079,7 +1079,7 @@
       c.el.classList.toggle('top1', p.rank === 1);
       c.el.dataset.rank = p.rank;
       const avg = p.buzzCount ? Math.round((p.buzzSum / p.buzzCount) * 10) / 10 : null;
-      c.el.querySelector('.pc-tag').textContent = (avg == null ? 'おしていないよ' : '平きん ' + avg + '文字目で おした') + (p.online ? '' : '（お休み中）');
+      c.el.querySelector('.pc-tag').textContent = (avg == null ? 'おしていないよ' : '平均 ' + avg + '文字目で おした') + (p.online ? '' : '（お休み中）');
       const sc = c.el.querySelector('.pc-score');
       sc.hidden = false;
       sc.querySelector('b').textContent = p.score || 0;
