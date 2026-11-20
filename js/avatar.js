@@ -268,8 +268,11 @@
   // opts.title: 読み上げ用の名前
   // opts.equipped（または avatar.equipped）: { head: 'アクセサリーid', face: 'アクセサリーid' }
   function render(avatar, opts) {
-    const a = normalize(avatar);
     const o = opts || {};
+    // 偉人スキンをつけているときは、キャラの絵そのものがスキンの絵になる（js/skins.js）
+    const skinId = o.skin !== undefined ? o.skin : (avatar && avatar.skin);
+    if (skinId && window.Skins && window.Skins.get(skinId)) return window.Skins.render(skinId, o.title);
+    const a = normalize(avatar);
     const skin = SKINS[a.skin].color;
     const hairC = HAIR_COLORS[a.hairColor].color;
     const hair = HAIRS[a.hair];
@@ -329,7 +332,8 @@
   // いまのプレイヤーのキャラ（つけているアクセサリーこみ）
   function renderCurrent(opts) {
     const eq = window.Profile && window.Profile.equipped ? window.Profile.equipped() : {};
-    return render(load() || DEFAULT, Object.assign({ equipped: eq }, opts || {}));
+    const sk = window.Profile && window.Profile.skin ? window.Profile.skin() : '';
+    return render(load() || DEFAULT, Object.assign({ equipped: eq, skin: sk }, opts || {}));
   }
 
   window.Avatar = {

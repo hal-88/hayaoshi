@@ -2,7 +2,7 @@
 // この iPad にも写しを保存しておき、次からは名前の入力を省略できるようにする。
 (function () {
   const LOCAL_KEY = 'hayaoshi.profile';
-  let state = null; // { name, key, equipped:{head,face}, totalPoints, accessories:{id:true}, best:{教科:点} }
+  let state = null; // { name, key, equipped:{head,face}, totalPoints, accessories:{id:true}, best:{教科:点}, eventPoints, skins:{id:true}, skin }
 
   function emptyEquip() { return { head: '', face: '' }; }
 
@@ -14,7 +14,7 @@
     try {
       const v = JSON.parse(localStorage.getItem(LOCAL_KEY));
       if (v && v.name && v.key) {
-        state = Object.assign({ equipped: emptyEquip(), totalPoints: 0, accessories: {}, best: {} }, v);
+        state = Object.assign({ equipped: emptyEquip(), totalPoints: 0, accessories: {}, best: {}, eventPoints: 0, skins: {}, skin: '' }, v);
         return true;
       }
     } catch (e) { /* 何もしない */ }
@@ -38,9 +38,15 @@
     return out;
   }
 
+  // 持っていない偉人スキンはつけられない
+  function cleanSkin(id, skins) {
+    return id && skins && skins[id] && window.Skins && Skins.get(id) ? id : '';
+  }
+
   function fromData(name, key, data) {
     const total = Number(data && data.totalPoints) || 0;
     const accessories = (data && data.accessories) || {};
+    const skins = (data && data.skins) || {};
     state = {
       name,
       key,
@@ -48,6 +54,9 @@
       totalPoints: total,
       accessories,
       best: (state && state.key === key && state.best) || {},
+      eventPoints: Number(data && data.eventPoints) || 0,
+      skins,
+      skin: cleanSkin(data && data.skin, skins),
     };
     if (data && data.avatar) Avatar.save(data.avatar);
     saveLocal();
@@ -55,7 +64,9 @@
 
   // ランキングにのせるキャラ（アクセサリーこみ）
   function rankingAvatar() {
-    return Object.assign({}, Avatar.load() || Avatar.DEFAULT, { equipped: state ? state.equipped : emptyEquip() });
+    const a = Object.assign({}, Avatar.load() || Avatar.DEFAULT, { equipped: state ? state.equipped : emptyEquip() });
+    if (state && state.skin) a.skin = state.skin; // 偉人スキン（ランキングや対戦でもスキンの絵で出る）
+    return a;
   }
 
   // ---------- 名前で記録をさがす ----------
@@ -76,13 +87,16 @@
   // はじめての人：キャラを作ったら登録
   async function register(name, key, avatar) {
     Avatar.save(avatar);
-    state = { name, key, equipped: emptyEquip(), totalPoints: 0, accessories: {}, best: {} };
+    state = { name, key, equipped: emptyEquip(), totalPoints: 0, accessories: {}, best: {}, eventPoints: 0, skins: {}, skin: '' };
     // 同じ名前の人が先に登録していたら、その記録を引きつぐ
     const existing = await Store.getPlayer(key);
     if (existing) {
       state.totalPoints = Number(existing.totalPoints) || 0;
       state.accessories = existing.accessories || {};
       state.equipped = cleanEquip(existing.equipped, state.accessories);
+      state.eventPoints = Number(existing.eventPoints) || 0;
+      state.skins = existing.skins || {};
+      state.skin = cleanSkin(existing.skin, state.skins);
     }
     await Store.savePlayer(key, {
       name,
@@ -114,11 +128,13 @@
   }
 
   // キャラやアクセサリーを変えたとき
-  async function saveLook(avatar, equipped) {
+  // skin を省くと、いまのスキンのまま
+  async function saveLook(avatar, equipped, skin) {
     Avatar.save(avatar);
     state.equipped = cleanEquip(equipped, state.accessories);
+    if (skin !== undefined) state.skin = cleanSkin(skin, state.skins);
     saveLocal();
-    await Store.savePlayer(state.key, { name: state.name, avatar: Avatar.normalize(avatar), equipped: state.equipped });
+    await Store.savePlayer(state.key, { name: state.name, avatar: Avatar.normalize(avatar), equipped: state.equipped, skin: state.skin });
     await Store.updateRankingProfile(state.key, state.name, rankingAvatar());
   }
 
@@ -152,8 +168,8 @@
   async function pullGacha(count) {
     const r = await Store.pullGacha(state.key, count);
     if (r.results || r.reason === 'points') {
-      state.totalPoints = r.totalPoints;
-      state.accessories = r.accessories;
+      state.totalPoints = r.points;
+      state.accessories = r.owned;
       state.equipped = cleanEquip(state.equipped, state.accessories);
       saveLocal();
     }
@@ -167,8 +183,40 @@
     await saveLook(Avatar.load() || Avatar.DEFAULT, eq);
   }
 
+  // ---------- 歴史イベント ----------
+  async function applyEvent(score) {
+    let total = state.eventPoints || 0;
+    if (score > 0) total = await Store.addEventPoints(state.key, state.name, score);
+    const before = total - score;
+    state.eventPoints = total;
+    saveLocal();
+    return { before, total, pulls: skinPulls() };
+  }
+
+  function skinPulls() {
+    return Math.floor((state ? state.eventPoints || 0 : 0) / Store.GACHA_COST);
+  }
+
+  async function pullSkinGacha(count) {
+    const r = await Store.pullSkinGacha(state.key, count);
+    if (r.results || r.reason === 'points') {
+      state.eventPoints = r.points;
+      state.skins = r.owned;
+      saveLocal();
+    }
+    return r;
+  }
+
+  async function wearSkin(id) {
+    await saveLook(Avatar.load() || Avatar.DEFAULT, state.equipped, id || '');
+  }
+
   window.Profile = {
     loadLocal, clear, lookup, loginExisting, register, refresh, saveLook, applyPractice, equipOne, pullGacha, gachaPulls,
+    applyEvent, skinPulls, pullSkinGacha, wearSkin,
+    eventPoints: () => (state ? state.eventPoints || 0 : 0),
+    skins: () => (state && state.skins) || {},
+    skin: () => (state ? state.skin || '' : ''),
     has: () => !!state,
     name: () => (state ? state.name : ''),
     key: () => (state ? state.key : ''),

@@ -8,6 +8,12 @@
     { key: 'all', label: 'オールジャンル', badge: '全', file: null, color: '#8c6bff' },
   ];
 
+  // イベントだけで使う教科（ふつうの教科えらび・ランキング・対戦には出さない）
+  // tag の問題を from の教科から集める
+  const EXTRA = [
+    { key: 'history', label: '歴史', badge: '歴', from: 'shakai', tag: 'history', color: '#c0702a' },
+  ];
+
   const cache = {};
 
   async function loadOne(subject) {
@@ -21,6 +27,11 @@
 
   // key: 'shakai' | 'rika' | 'kokugo' | 'sansu' | 'all'
   async function load(key) {
+    const extra = EXTRA.find((s) => s.key === key);
+    if (extra) {
+      const list = await loadOne(getSubject(extra.from));
+      return list.filter((q) => (q.tags || []).includes(extra.tag));
+    }
     if (key === 'all') {
       const lists = await Promise.all(SUBJECTS.filter((s) => s.file).map(loadOne));
       return [].concat(...lists);
@@ -29,7 +40,7 @@
   }
 
   function getSubject(key) {
-    return SUBJECTS.find((s) => s.key === key);
+    return SUBJECTS.find((s) => s.key === key) || EXTRA.find((s) => s.key === key);
   }
 
   // 同じ問題が出ないように、まぜてから n 問とり出す

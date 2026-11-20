@@ -3,6 +3,7 @@
   const $ = (id) => document.getElementById(id);
   let current = null;   // パーツ
   let equipped = null;  // { head, face }
+  let skin = '';        // 偉人スキン（'' はなし）
   let onDone = null;
 
   // options: { canCancel, start(はじめのパーツ), onDone({avatar, equipped} または null) }
@@ -11,18 +12,22 @@
     onDone = o.onDone || null;
     current = Avatar.normalize(o.start || Avatar.load() || Avatar.random());
     equipped = Object.assign({ head: '', face: '' }, Profile.equipped());
+    skin = Profile.skin ? Profile.skin() : '';
     $('btn-avatar-back').hidden = !o.canCancel;
-    showTab('parts');
+    showTab(o.tab || 'parts');
     buildParts();
     buildAcc();
+    buildSkins();
     update();
   }
 
   function showTab(name) {
     $('tab-parts').classList.toggle('active', name === 'parts');
     $('tab-acc').classList.toggle('active', name === 'acc');
+    $('tab-skin').classList.toggle('active', name === 'skin');
     $('maker-parts').hidden = name !== 'parts';
     $('maker-acc').hidden = name !== 'acc';
+    $('maker-skin').hidden = name !== 'skin';
   }
 
   function makeRow(label, key, onStep) {
@@ -105,6 +110,28 @@
     $('acc-progress-bar').style.width = (have / all) * 100 + '%';
   }
 
+  // 偉人スキン：持っているものだけ（えらぶと、キャラの絵そのものがスキンになる）
+  function buildSkins() {
+    const grid = $('maker-skin-grid');
+    grid.innerHTML = '';
+    const owned = window.Skins ? Skins.owned(Profile.skins ? Profile.skins() : {}) : [];
+    const add = (id, label, html) => {
+      const b = document.createElement('button');
+      b.className = 'skin-pick' + (id ? ' rarity-' + Skins.get(id).rarity : '');
+      b.dataset.id = id;
+      b.innerHTML = '<span class="avatar-badge skin-face"></span><span class="skin-name"></span>';
+      b.querySelector('.skin-face').innerHTML = html;
+      b.querySelector('.skin-name').textContent = label;
+      b.addEventListener('click', () => { skin = id; Sound.play('tap'); update(true); });
+      grid.appendChild(b);
+    };
+    add('', 'スキンなし', Avatar.render(current, { equipped, skin: '' }));
+    owned.forEach((x) => add(x.id, x.name, Skins.render(x.id)));
+    $('maker-skin-help').textContent = owned.length
+      ? 'スキンをつけると、キャラの絵が 偉人の絵に かわるよ（パーツやアクセサリーは 見えなくなる）'
+      : '偉人スキンは、期間限定の「歴史イベント」の 偉人ガチャで ゲットできるよ';
+  }
+
   function strong(t) {
     const b = document.createElement('b');
     b.textContent = t;
@@ -113,7 +140,7 @@
 
   function update(changed) {
     const preview = $('maker-avatar');
-    preview.innerHTML = Avatar.render(current, { equipped, title: 'じぶんのキャラ' });
+    preview.innerHTML = Avatar.render(current, { equipped, skin, title: 'じぶんのキャラ' });
     preview.classList.remove('boing');
     void preview.offsetWidth;
     if (changed) preview.classList.add('boing');
@@ -137,6 +164,9 @@
       row.querySelector('.part-swatch').hidden = true;
       row.querySelectorAll('.part-arrow').forEach((b) => { b.disabled = list.length <= 1; });
     });
+    $('maker-skin-grid').querySelectorAll('.skin-pick').forEach((c) => c.classList.toggle('wearing', c.dataset.id === skin));
+    const none = $('maker-skin-grid').querySelector('.skin-pick[data-id=""] .skin-face');
+    if (none && changed) none.innerHTML = Avatar.render(current, { equipped, skin: '' });
     $('acc-grid').querySelectorAll('.acc-card').forEach((c) => {
       c.classList.toggle('wearing', equipped.head === c.dataset.id || equipped.face === c.dataset.id);
     });
@@ -145,6 +175,7 @@
   function setup() {
     $('tab-parts').addEventListener('click', () => { Sound.play('tap'); showTab('parts'); });
     $('tab-acc').addEventListener('click', () => { Sound.play('tap'); showTab('acc'); });
+    $('tab-skin').addEventListener('click', () => { Sound.play('tap'); showTab('skin'); });
     $('btn-random').addEventListener('click', () => {
       current = Avatar.normalize(Avatar.random());
       Sound.play('sparkle');
@@ -153,7 +184,7 @@
     $('btn-avatar-ok').addEventListener('click', () => {
       Sound.play('correct');
       Effects.confetti(50);
-      if (onDone) onDone({ avatar: Avatar.normalize(current), equipped: Object.assign({}, equipped) });
+      if (onDone) onDone({ avatar: Avatar.normalize(current), equipped: Object.assign({}, equipped), skin });
     });
     $('btn-avatar-back').addEventListener('click', () => {
       Sound.play('tap');

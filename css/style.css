@@ -1621,3 +1621,84 @@ kbd {
 .acc-icon { height: 28px; }
 .acc-q { font-size: 18px; }
 .acc-name { font-size: 10px; }
+
+/* ===== 期間限定：歴史イベント ===== */
+.menu-wide.half { grid-column: auto; }
+.menu-event { position: relative; }
+.menu-event:disabled { background: #ffe3c4; border-color: var(--ink); color: var(--ink); box-shadow: 0 7px 0 var(--ink); opacity: .75; }
+.menu-event:disabled .menu-icon { filter: none; opacity: 1; border-color: var(--ink); }
+.menu-ribbon {
+  position: absolute;
+  top: 8px;
+  right: -30px;
+  padding: 2px 34px;
+  background: var(--red);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  transform: rotate(35deg);
+  border-top: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+}
+
+#screen-event { justify-content: flex-start; padding-top: max(16px, env(safe-area-inset-top)); gap: clamp(8px, 1.8vh, 14px); background: radial-gradient(ellipse 120% 70% at 50% 0%, rgba(255, 179, 107, .35), transparent 70%); }
+.event-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.event-tag { padding: 3px 12px; border: 2.5px solid var(--ink); border-radius: 999px; background: var(--red); color: #fff; font-weight: 800; font-size: 14px; box-shadow: 0 3px 0 var(--ink); }
+.event-title { background: linear-gradient(transparent 62%, #ffb36b 62%, #ffb36b 92%, transparent 92%); }
+.event-period { font-weight: 800; color: var(--ink-soft); }
+.event-stage { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr); gap: 14px; width: min(1000px, 100%); }
+.event-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px 16px;
+  border: var(--line);
+  border-radius: 22px;
+  background: var(--paper);
+  box-shadow: 0 6px 0 var(--ink);
+}
+.event-card-title { display: flex; align-items: center; gap: 8px; font-family: var(--display); font-size: clamp(20px, 3.4vmin, 28px); }
+.event-card-title span { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: 2.5px solid var(--ink); border-radius: 50%; background: #ffb36b; font-size: 18px; }
+.event-text { margin: 0; text-align: center; font-weight: 800; color: var(--ink-soft); line-height: 1.6; }
+.event-play { margin-top: auto; }
+.event-gacha { display: flex; align-items: center; gap: 14px; width: 100%; }
+.event-machine { width: clamp(110px, 18vmin, 160px); }
+.event-gacha-side { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.event-gacha-side .gacha-btn { padding: 6px 14px; }
+.event-gacha-side .gacha-btn span { font-size: clamp(18px, 3vmin, 24px); }
+.skin-collection { display: flex; flex-direction: column; align-items: center; gap: 6px; width: min(1000px, 100%); }
+.skin-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; width: 100%; }
+.skin-card, .skin-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 2px 5px;
+  border: 2.5px solid var(--ink);
+  border-radius: 12px;
+  background: var(--paper);
+  box-shadow: 0 3px 0 var(--ink);
+  min-width: 0;
+}
+.skin-card.rarity-r, .skin-pick.rarity-r { background: #dcebff; }
+.skin-card.rarity-sr, .skin-pick.rarity-sr { background: #fff1c4; }
+.skin-card.locked { background: #ece9f5; border-color: #b9b4d4; box-shadow: 0 3px 0 #b9b4d4; }
+.skin-card.wearing, .skin-pick.wearing { outline: 3px solid var(--coral); outline-offset: 1px; }
+.skin-face { width: 100%; max-width: 56px; aspect-ratio: 1; height: auto; border-width: 2.5px; box-shadow: none; display: flex; align-items: center; justify-content: center; }
+.skin-face .acc-q { font-size: 22px; }
+.skin-name { font-size: 11px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.skin-card.locked .skin-name { color: #9993bd; }
+.skin-icon svg { width: 48px; height: 48px; border: 2.5px solid var(--ink); border-radius: 50%; }
+
+/* キャラづくり：偉人スキンのタブ */
+.maker-skin { display: flex; flex-direction: column; gap: 10px; }
+.maker-skin-help { margin: 0; font-weight: 800; font-size: 14px; color: var(--ink-soft); }
+.maker-skin-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.maker-skin-grid .skin-face { max-width: 72px; }
+.skin-pick:active { transform: translateY(3px); box-shadow: none; }
+
+@media (orientation: portrait) {
+  .event-stage { grid-template-columns: 1fr; }
+  .skin-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}

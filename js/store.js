@@ -168,11 +168,27 @@
     return total;
   }
 
+  // 歴史イベントの点をふやす
+  async function addEventPoints(key, name, delta) {
+    const v = await transaction('players/' + key + '/eventPoints', (cur) => (Number(cur) || 0) + delta);
+    await savePlayer(key, { name });
+    return Number(v) || 0;
+  }
+
   // ---------- ガチャ ----------
   // ためた点を 500点 × 回数 へらして、アクセサリーを引く。
   // 点をへらすのとアクセサリーをふやすのを1つのトランザクションでするので、2台で同時に引いても点がずれない。
   const GACHA_COST = 500;
-  async function pullGacha(key, count) {
+  // ふつうのガチャ：ためた点 → アクセサリー
+  function pullGacha(key, count) {
+    return pullFrom(key, count, 'totalPoints', 'accessories', (min) => Avatar.drawAccessory(min));
+  }
+  // 歴史イベントのガチャ：イベントの点 → 偉人スキン
+  function pullSkinGacha(key, count) {
+    return pullFrom(key, count, 'eventPoints', 'skins', (min) => Skins.draw(min));
+  }
+
+  async function pullFrom(key, count, pointsField, ownedField, drawFn) {
     let results = null;
     let reason = null;
     const v = await transaction('players/' + key, (cur) => {
@@ -180,20 +196,20 @@
       reason = null;
       if (cur === null) return null; // サーバーで たしかめてもらう（ほんとうに無ければ何も起きない）
       const cost = GACHA_COST * count;
-      const total = Number(cur.totalPoints) || 0;
+      const total = Number(cur[pointsField]) || 0;
       if (total < cost) { reason = 'points'; return; }
       const draws = [];
-      for (let i = 0; i < count; i++) draws.push(Avatar.drawAccessory());
+      for (let i = 0; i < count; i++) draws.push(drawFn());
       // 10連は、レア以上が1つもなければ最後の1つをレア以上にする
-      if (count >= 10 && !draws.some((a) => a.rarity !== 'n')) draws[draws.length - 1] = Avatar.drawAccessory('r');
-      const acc = Object.assign({}, cur.accessories || {});
+      if (count >= 10 && !draws.some((a) => a.rarity !== 'n')) draws[draws.length - 1] = drawFn('r');
+      const acc = Object.assign({}, cur[ownedField] || {});
       results = draws.map((a) => {
         const isNew = !acc[a.id];
         acc[a.id] = true;
         return { acc: a, isNew };
       });
-      cur.totalPoints = total - cost;
-      cur.accessories = acc;
+      cur[pointsField] = total - cost;
+      cur[ownedField] = acc;
       cur.updatedAt = Date.now();
       return cur;
     });
@@ -201,8 +217,8 @@
     return {
       results: reason ? null : results,
       reason,
-      totalPoints: v ? Number(v.totalPoints) || 0 : 0,
-      accessories: (v && v.accessories) || {},
+      points: v ? Number(v[pointsField]) || 0 : 0,
+      owned: (v && v[ownedField]) || {},
     };
   }
 
@@ -266,7 +282,7 @@
   window.Store = {
     SUBJECT_KEYS, init, hasConfig, normalizeName, nameKey,
     teacherEmail, isTeacher, signInTeacher, signOutTeacher,
-    getPlayer, savePlayer, addPoints, pullGacha, GACHA_COST,
+    getPlayer, savePlayer, addPoints, addEventPoints, pullGacha, pullSkinGacha, GACHA_COST,
     submitScore, getBest, getAllBest, getRanking, getRank, updateRankingProfile,
     mode: () => mode, uid: () => uid, db: () => db,
   };

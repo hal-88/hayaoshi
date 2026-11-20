@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=17">
+  <link rel="stylesheet" href="css/style.css?v=18">
 </head>
 <body>
   <div id="app">
@@ -105,6 +105,16 @@
             <span id="menu-gacha-sub" class="menu-sub">500点で 1回 引けるよ</span>
           </span>
         </button>
+        <button id="btn-menu-event" class="menu-card menu-wide half menu-event" style="--c:#ffb36b" hidden>
+          <span class="menu-icon">
+            <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M10 30 C10 14 18 8 24 8 C30 8 38 14 38 30Z" fill="#3b3473" stroke="#2b2463" stroke-width="3" stroke-linejoin="round"/><path d="M12 14 C16 4 22 2 24 8 C26 2 32 4 36 14 C31 10 27 10 24 14 C21 10 17 10 12 14Z" fill="#ffc93c" stroke="#2b2463" stroke-width="2.5" stroke-linejoin="round"/><rect x="8" y="28" width="32" height="8" rx="3" fill="#3b3473" stroke="#2b2463" stroke-width="3"/><circle cx="24" cy="16" r="3.5" fill="#ff4f4f" stroke="#2b2463" stroke-width="2"/><path d="M14 42 L34 42" stroke="#2b2463" stroke-width="3" stroke-linecap="round"/></svg>
+          </span>
+          <span class="menu-wide-text">
+            <span class="menu-label">歴史イベント</span>
+            <span id="menu-event-sub" class="menu-sub">期間限定！</span>
+          </span>
+          <span class="menu-ribbon">期間限定</span>
+        </button>
       </div>
       <button class="btn btn-ghost" data-go="screen-top">もどる</button>
     </section>
@@ -150,6 +160,7 @@
           <div class="maker-tabs" role="tablist">
             <button id="tab-parts" class="maker-tab active" role="tab">パーツ</button>
             <button id="tab-acc" class="maker-tab" role="tab">アクセサリー</button>
+            <button id="tab-skin" class="maker-tab" role="tab">偉人スキン</button>
           </div>
           <div id="maker-parts" class="maker-parts"></div>
           <div id="maker-acc" class="maker-acc" hidden>
@@ -159,6 +170,10 @@
               <div class="bar"><div id="acc-progress-bar" class="bar-fill"></div></div>
             </div>
             <div id="acc-grid" class="acc-grid"></div>
+          </div>
+          <div id="maker-skin" class="maker-skin" hidden>
+            <p id="maker-skin-help" class="maker-skin-help"></p>
+            <div id="maker-skin-grid" class="maker-skin-grid"></div>
           </div>
         </div>
       </div>
@@ -273,10 +288,10 @@
       <div class="result-stats">
         <div class="stat" style="--c:#2ec4a6"><span class="stat-label">正かい</span><b id="result-correct">0</b><span class="stat-unit">/ 10問</span></div>
         <div class="stat" style="--c:#4d9dff"><span class="stat-label">平均</span><b id="result-avgchar">-</b><span class="stat-unit">文字目で おした</span></div>
-        <div class="stat" style="--c:#ff5c8d"><span class="stat-label">ベスト記録</span><b id="result-best">0</b><span class="stat-unit">点</span></div>
+        <div id="stat-best" class="stat" style="--c:#ff5c8d"><span class="stat-label">ベスト記録</span><b id="result-best">0</b><span class="stat-unit">点</span></div>
       </div>
       <div id="result-points" class="result-points">
-        <div class="rp-line">ためた点 <b id="rp-total">-</b>点 <span id="rp-plus" class="rp-plus"></span></div>
+        <div class="rp-line"><span id="rp-label">ためた点</span> <b id="rp-total">-</b>点 <span id="rp-plus" class="rp-plus"></span></div>
         <div class="bar"><div id="rp-bar" class="bar-fill"></div></div>
         <div class="rp-foot">
           <div id="rp-next" class="rp-next">記録しています…</div>
@@ -477,26 +492,82 @@
 
     <!-- iPad のキーボードの Enter・スペースを受けとる見えない入力欄（js/keys.js） -->
     <input id="key-catcher" class="key-catcher" type="text" inputmode="none" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="-1" aria-hidden="true">
+    <!-- 期間限定：歴史イベント（js/event.js） -->
+    <section id="screen-event" class="screen">
+      <div class="event-head">
+        <span class="event-tag">期間限定</span>
+        <h2 class="screen-title event-title">歴史イベント</h2>
+        <span id="event-period" class="event-period"></span>
+      </div>
+      <div class="event-stage">
+        <div class="event-card">
+          <div class="event-card-title"><span>1</span>歴史チャレンジ</div>
+          <p class="event-text">縄文時代から 昭和まで、歴史の問題が 10問。<br>とった点が「イベントの点」に なるよ！</p>
+          <button id="btn-event-play" class="btn btn-primary event-play">歴史チャレンジ（10問）</button>
+        </div>
+        <div class="event-card">
+          <div class="event-card-title"><span>2</span>偉人ガチャ</div>
+          <div class="event-gacha">
+            <div id="event-machine" class="gacha-machine event-machine" aria-hidden="true">
+              <svg viewBox="0 0 200 260"><rect x="34" y="128" width="132" height="112" rx="18" fill="#3b3473" stroke="#2b2463" stroke-width="6"/><circle cx="100" cy="78" r="66" fill="#fff3dc" stroke="#2b2463" stroke-width="6"/><g class="gacha-balls" stroke="#2b2463" stroke-width="4"><circle cx="70" cy="100" r="16" fill="#ffc93c"/><circle cx="104" cy="108" r="16" fill="#e0503f"/><circle cx="136" cy="98" r="16" fill="#4bb56d"/><circle cx="86" cy="72" r="16" fill="#8c6bff"/><circle cx="120" cy="70" r="16" fill="#4d9dff"/><circle cx="100" cy="42" r="16" fill="#ff8fbc"/></g><g class="gacha-knob"><circle cx="100" cy="180" r="22" fill="#ffc93c" stroke="#2b2463" stroke-width="6"/><rect x="80" y="174" width="40" height="12" rx="6" fill="#fff" stroke="#2b2463" stroke-width="4"/></g><rect x="72" y="212" width="56" height="20" rx="8" fill="#2b2463"/></svg>
+            </div>
+            <div class="event-gacha-side">
+              <div class="gacha-points">イベントの点 <b id="event-points">0</b>点</div>
+              <div id="event-can" class="gacha-can"></div>
+              <div class="gacha-buttons">
+                <button id="btn-skin-1" class="btn btn-primary gacha-btn"><span>1回 引く</span><small>500点</small></button>
+                <button id="btn-skin-10" class="btn gacha-btn gacha-btn-10"><span>10連ガチャ</span><small>5000点・レア以上 1つ確定！</small></button>
+              </div>
+              <div class="gacha-rates">出やすさ：<span class="r-n">ふつう 60%</span>・<span class="r-r">レア 30%</span>・<span class="r-sr">スーパーレア 10%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="skin-collection">
+        <div id="skin-owned" class="gacha-owned"></div>
+        <div id="skin-grid" class="skin-grid"></div>
+      </div>
+      <div class="name-buttons">
+        <button class="btn btn-ghost" data-go="screen-menu">メニューへ</button>
+        <button id="btn-event-maker" class="btn btn-sub">キャラクターで スキンを つける</button>
+      </div>
+    </section>
+
+    <div id="skin-result" class="modal gacha-modal" hidden>
+      <div class="modal-card gacha-card">
+        <div class="modal-rays" aria-hidden="true"></div>
+        <div id="skin-result-title" class="modal-title">ガチャの けっか</div>
+        <div id="skin-result-list" class="gacha-list"></div>
+        <p id="skin-result-sum" class="gacha-sum"></p>
+        <div class="name-buttons">
+          <button id="btn-skin-close" class="btn btn-ghost">とじる</button>
+          <button id="btn-skin-wear" class="btn btn-primary" hidden>スキンを つける！</button>
+        </div>
+      </div>
+    </div>
+
     <div id="fx-layer" class="fx-layer" aria-hidden="true"></div>
   </div>
 
   <!-- ローマ字 → ひらがな（WanaKana, MIT License） -->
   <script src="https://cdn.jsdelivr.net/npm/wanakana@5.3.1/wanakana.min.js" integrity="sha384-ei/skGdXfWHx8zodPeKIHWR7N4qSpIlj3wBwEPMPfw2MvsbEJSFrPMUCPXnEuKSw" crossorigin="anonymous"></script>
-  <script src="js/firebase-config.js?v=17"></script>
-  <script src="js/sound.js?v=17"></script>
-  <script src="js/judge.js?v=17"></script>
-  <script src="js/avatar.js?v=17"></script>
-  <script src="js/store.js?v=17"></script>
-  <script src="js/profile.js?v=17"></script>
-  <script src="js/questions.js?v=17"></script>
-  <script src="js/reader.js?v=17"></script>
-  <script src="js/effects.js?v=17"></script>
-  <script src="js/keys.js?v=17"></script>
-  <script src="js/practice.js?v=17"></script>
-  <script src="js/maker.js?v=17"></script>
-  <script src="js/ranking.js?v=17"></script>
-  <script src="js/battle.js?v=17"></script>
-  <script src="js/gacha.js?v=17"></script>
-  <script src="js/app.js?v=17"></script>
+  <script src="js/firebase-config.js?v=18"></script>
+  <script src="js/sound.js?v=18"></script>
+  <script src="js/judge.js?v=18"></script>
+  <script src="js/avatar.js?v=18"></script>
+  <script src="js/store.js?v=18"></script>
+  <script src="js/profile.js?v=18"></script>
+  <script src="js/questions.js?v=18"></script>
+  <script src="js/reader.js?v=18"></script>
+  <script src="js/effects.js?v=18"></script>
+  <script src="js/keys.js?v=18"></script>
+  <script src="js/practice.js?v=18"></script>
+  <script src="js/maker.js?v=18"></script>
+  <script src="js/ranking.js?v=18"></script>
+  <script src="js/battle.js?v=18"></script>
+  <script src="js/gacha.js?v=18"></script>
+  <script src="js/skins.js?v=18"></script>
+  <script src="js/event.js?v=18"></script>
+  <script src="js/app.js?v=18"></script>
 </body>
 </html>

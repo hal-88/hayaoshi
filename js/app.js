@@ -21,6 +21,7 @@
     const rest = Store.GACHA_COST - (Profile.totalPoints() % Store.GACHA_COST);
     $('menu-gacha-sub').textContent = pulls ? pulls + '回 引けるよ！' : 'あと ' + rest + '点で 引けるよ';
     $('btn-menu-gacha').classList.toggle('ready', pulls > 0);
+    HistoryEvent.updateMenuCard(); // 期間限定イベントのカード
   }
 
   // ---- 音のオン・オフ ----
@@ -187,6 +188,10 @@
     $('result-total').textContent = r.total;
     $('result-correct').textContent = r.correct;
     $('result-avgchar').textContent = r.avgChar == null ? '-' : r.avgChar;
+    const isEvent = key === HistoryEvent.EVENT.subject; // 歴史イベントは、ランキングやベスト記録ではなく「イベントの点」
+    $('stat-best').hidden = isEvent;
+    $('rp-label').textContent = isEvent ? 'イベントの点' : 'ためた点';
+    $('btn-result-gacha').textContent = isEvent ? '🎁 偉人ガチャを引く' : '🎁 ガチャを引く';
     $('result-best').textContent = Math.max(Profile.best(key), r.total);
     $('result-newbest').hidden = true;
     $('result-rank').hidden = true;
@@ -199,6 +204,16 @@
 
     show('screen-result');
     Sound.play('fanfare');
+
+    if (isEvent) {
+      Profile.applyEvent(r.total).then((res) => {
+        if (lastSubjectKey !== key || !$('screen-result').classList.contains('active')) return;
+        showPoints(res, '偉人ガチャ');
+      }).catch(() => {
+        $('rp-next').textContent = '記録を 保存できませんでした（インターネットを たしかめてね）';
+      });
+      return;
+    }
 
     Profile.applyPractice(key, r.total).then((res) => {
       if (lastSubjectKey !== key || !$('screen-result').classList.contains('active')) return;
@@ -222,17 +237,18 @@
   }
 
   // ためた点と、つぎのガチャまで
-  function showPoints(res) {
+  function showPoints(res, gachaName) {
     const total = res.total;
     const cost = Store.GACHA_COST;
+    const g = gachaName || 'ガチャ';
     $('rp-total').textContent = total.toLocaleString();
     if (res.pulls > 0) {
-      $('rp-next').textContent = 'ガチャが ' + res.pulls + '回 引けるよ！';
+      $('rp-next').textContent = g + 'が ' + res.pulls + '回 引けるよ！';
       $('rp-bar').style.width = '100%';
       $('btn-result-gacha').hidden = false;
       setTimeout(() => Sound.play('sparkle'), 900);
     } else {
-      $('rp-next').textContent = 'ガチャまで あと ' + (cost - total % cost) + '点';
+      $('rp-next').textContent = g + 'まで あと ' + (cost - total % cost) + '点';
       $('rp-bar').style.width = ((total % cost) / cost) * 100 + '%';
     }
   }
@@ -253,13 +269,14 @@
   }
 
   // キャラクターづくり（メニューから）
-  function openMakerFromMenu() {
+  function openMakerFromMenu(tab) {
     Maker.open({
       canCancel: true,
+      tab,
       onDone: async (r) => {
         if (r) {
           try {
-            await Profile.saveLook(r.avatar, r.equipped);
+            await Profile.saveLook(r.avatar, r.equipped, r.skin);
           } catch (e) {
             alert('保存できませんでした。インターネットを たしかめてね。');
           }
@@ -270,13 +287,14 @@
     show('screen-avatar');
   }
 
-  window.App = { show, openMaker: openMakerFromMenu };
+  window.App = { show, openMaker: openMakerFromMenu, startPractice };
 
   function init() {
     Practice.setup();
     Maker.setup();
     Battle.setup();
     Gacha.setup();
+    HistoryEvent.setup();
     // 見えない入力欄で Enter・スペースを受けとったら早押し
     Keys.setup();
     Keys.onBuzz(() => {
@@ -314,7 +332,11 @@
     });
 
     $('btn-menu-gacha').addEventListener('click', () => { Sound.play('tap'); Gacha.open(); });
-    $('btn-result-gacha').addEventListener('click', () => { Sound.play('tap'); Gacha.open(); });
+    $('btn-result-gacha').addEventListener('click', () => {
+      Sound.play('tap');
+      if (lastSubjectKey === HistoryEvent.EVENT.subject) HistoryEvent.open();
+      else Gacha.open();
+    });
 
     $('sound-toggle').addEventListener('click', () => {
       Sound.unlock();
@@ -346,6 +368,10 @@
     });
 
     $('btn-again').addEventListener('click', () => {
+      if (lastSubjectKey === HistoryEvent.EVENT.subject && !HistoryEvent.isOpen()) {
+        alert(HistoryEvent.EVENT.name + 'は 終わったよ');
+        return;
+      }
       if (lastSubjectKey) startPractice(lastSubjectKey);
     });
 
