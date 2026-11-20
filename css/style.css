@@ -1702,3 +1702,6 @@ kbd {
   .event-stage { grid-template-columns: 1fr; }
   .skin-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 }
+
+/* メニューの「アクセサリー／ガチャ」は、ことばの切れめで2行にする */
+.menu-label-2 { line-height: 1.15; text-align: left; }
