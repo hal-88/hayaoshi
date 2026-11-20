@@ -159,13 +159,13 @@
   }
 
   // 古い部屋・だれもいない部屋をおそうじ
+  // 作ってから3時間たった部屋をおそうじ
+  // （ルールで、部屋の一覧は「3時間より前に作った部屋」しか読めないようにしてある。少しだけ余裕をもたせる）
   async function cleanupRooms() {
     try {
-      const snap = await db.ref('rooms').get();
-      const all = snap.val() || {};
-      const t = now();
+      const snap = await db.ref('rooms').orderByChild('createdAt').endAt(now() - ROOM_LIFE_MS - 120000).get();
       const del = {};
-      Object.keys(all).forEach((c) => { if (isDead(all[c], t)) del[c] = null; });
+      Object.keys(snap.val() || {}).forEach((c) => { del[c] = null; });
       if (Object.keys(del).length) await db.ref('rooms').update(del);
     } catch (e) { /* そうじできなくても部屋は作れる */ }
   }
@@ -290,18 +290,24 @@
     detach();
     if (ref) {
       try {
-        await ref.transaction((cur) => {
+        const res = await ref.transaction((cur) => {
           if (!cur) return cur;
           if (cur.players) delete cur.players[uid];
           const rest = Object.keys(cur.players || {}).map((k) => Object.assign({ uid: k }, cur.players[k]));
           const online = rest.filter((p) => p.online);
-          if (!online.length) return null; // だれもいなくなったら部屋を消す
+          if (!online.length) {
+            // だれもいなくなった → まず中の人を全部外す（ルールで、人がいる部屋は消せないようにしてあるため）
+            delete cur.players;
+            return cur;
+          }
           if (cur.hostUid === uid) {
             online.sort((a, b) => (a.joinedAt || 0) - (b.joinedAt || 0));
             cur.hostUid = online[0].uid;
           }
           return cur;
         });
+        const v = res.snapshot.val();
+        if (v && !v.players) await ref.remove(); // だれもいない部屋を消す
       } catch (e) { /* ぬけられなくても、回線が切れれば オフラインになる */ }
     }
     window.App.show('screen-menu');

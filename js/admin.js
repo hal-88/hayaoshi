@@ -1,7 +1,6 @@
 // 先生用画面：ランキング・プレイヤー・対戦の部屋を消す
 (function () {
   const $ = (id) => document.getElementById(id);
-  const PASS_KEY = 'hayaoshi.admin';
   let db = null;
   let pane = 'ranking';
   let subject = 'kokugo';
@@ -26,23 +25,36 @@
     return s ? s.label : key;
   }
 
-  // ---------- パスコード ----------
-  function checkPass(v) {
-    const pass = String(window.ADMIN_PASSCODE || '');
-    return pass && String(v || '').normalize('NFKC').trim() === pass;
+  // ---------- 先生のログイン ----------
+  // 記録を消す・全員の名前を見る は、データベースのルールで「先生のアカウントだけ」にしてある。
+  // この画面のログインは、その先生のアカウントでログインするためのもの。
+  async function connect() {
+    if (!Store.hasConfig()) throw new Error('Firebase の設定が まだです（js/firebase-config.js）');
+    await Store.init({ anonymous: false }); // 先生用画面では、自動の匿名ログインをしない
+    db = Store.db();
   }
 
   async function unlock() {
-    if (!window.ADMIN_PASSCODE) {
-      showPassError('js/firebase-config.js に ADMIN_PASSCODE が ありません');
+    const pw = $('pass-input').value;
+    if (!pw) { showPassError('パスワードを 入れてください'); return; }
+    $('btn-unlock').disabled = true;
+    $('pass-error').hidden = true;
+    status('ログインしています…');
+    try {
+      await connect();
+      await Store.signInTeacher(pw);
+    } catch (e) {
+      $('btn-unlock').disabled = false;
+      status('');
+      const code = (e && e.code) || '';
+      if (code === 'auth/operation-not-allowed') showPassError('Firebase で「メール/パスワード」のログインが まだ オンになっていません');
+      else if (code === 'auth/too-many-requests') showPassError('何度も まちがえたので、しばらく ログインできません。時間をおいて ためしてください');
+      else if (code.indexOf('auth/') === 0) showPassError('パスワードが ちがうか、先生のアカウントが まだ ありません');
+      else showPassError('つながりませんでした：' + (e.message || e));
       return;
     }
-    if (!checkPass($('pass-input').value)) {
-      showPassError('パスコードが ちがいます');
-      return;
-    }
-    try { sessionStorage.setItem(PASS_KEY, '1'); } catch (e) { /* 何もしない */ }
-    await openPanel();
+    $('pass-input').value = '';
+    openPanel();
   }
 
   function showPassError(msg) {
@@ -50,23 +62,20 @@
     $('pass-error').hidden = false;
   }
 
-  async function openPanel() {
-    $('btn-unlock').disabled = true;
-    status('つないでいます…');
-    try {
-      if (!Store.hasConfig()) throw new Error('Firebase の設定が まだです（js/firebase-config.js）');
-      await Store.init();
-      db = Store.db();
-    } catch (e) {
-      $('btn-unlock').disabled = false;
-      status('Firebase に つながりませんでした：' + (e.message || e), true);
-      return;
-    }
+  function openPanel() {
+    $('btn-unlock').disabled = false;
     status('');
     $('lock').hidden = true;
     $('panel').hidden = false;
     buildSubjects();
     showPane('ranking');
+  }
+
+  async function logout() {
+    try { await Store.signOutTeacher(); } catch (e) { /* 何もしない */ }
+    $('panel').hidden = true;
+    $('lock').hidden = false;
+    status('ログアウトしました');
   }
 
   // ---------- タブ ----------
@@ -273,21 +282,25 @@
   }
 
   // ---------- はじめ ----------
-  function init() {
+  async function init() {
+    $('teacher-email').textContent = window.TEACHER_EMAIL || '（js/firebase-config.js に TEACHER_EMAIL がありません）';
     $('btn-unlock').addEventListener('click', unlock);
     $('pass-input').addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); unlock(); }
     });
+    $('btn-logout').addEventListener('click', logout);
     document.querySelectorAll('.admin-tab').forEach((b) => b.addEventListener('click', () => showPane(b.dataset.pane)));
     $('btn-reload').addEventListener('click', () => { status(''); reload(); });
     $('btn-rank-clear').addEventListener('click', clearRanking);
     $('btn-rooms-clear').addEventListener('click', clearRooms);
     $('player-search').addEventListener('input', renderPlayers);
 
-    let ok = false;
-    try { ok = sessionStorage.getItem(PASS_KEY) === '1'; } catch (e) { /* 何もしない */ }
-    if (ok && window.ADMIN_PASSCODE) openPanel();
-    else setTimeout(() => { try { $('pass-input').focus(); } catch (e) { /* 何もしない */ } }, 200);
+    // もう先生のアカウントでログインしていれば、そのまま開く
+    try {
+      await connect();
+      if (Store.isTeacher()) { openPanel(); return; }
+    } catch (e) { /* ログインの画面を出す */ }
+    setTimeout(() => { try { $('pass-input').focus(); } catch (e) { /* 何もしない */ } }, 200);
   }
 
   document.addEventListener('DOMContentLoaded', init);

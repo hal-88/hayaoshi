@@ -11,8 +11,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=16">
-  <link rel="stylesheet" href="css/admin.css?v=16">
+  <link rel="stylesheet" href="css/style.css?v=17">
+  <link rel="stylesheet" href="css/admin.css?v=17">
 </head>
 <body>
   <div id="app" class="admin-app">
@@ -22,13 +22,14 @@
         <div class="admin-sub">早押しクイズの 記録の かんり</div>
       </header>
 
-      <!-- パスコード -->
+      <!-- 先生のログイン -->
       <section id="lock" class="admin-card admin-lock">
-        <p class="admin-lead">パスコードを 入れてください</p>
-        <input id="pass-input" class="code-input" type="password" inputmode="numeric" autocomplete="off" aria-label="パスコード">
+        <p class="admin-lead">先生の パスワードで ログインしてください</p>
+        <div class="admin-email">ログインする名前：<b id="teacher-email"></b></div>
+        <input id="pass-input" class="admin-pass" type="password" autocomplete="current-password" placeholder="パスワード" aria-label="パスワード">
         <p id="pass-error" class="name-error" hidden></p>
-        <button id="btn-unlock" class="btn btn-primary">入る</button>
-        <p class="admin-note">※ かんたんなカギです。本格的なセキュリティではありません。<br>パスコードは <code>js/firebase-config.js</code> の <code>ADMIN_PASSCODE</code> で変えられます。</p>
+        <button id="btn-unlock" class="btn btn-primary">ログイン</button>
+        <p class="admin-note">先生のアカウントは、Firebase の Authentication で作ります（くわしくは docs/firebase-setup.md）。<br>記録を消したり、全員の名前を見たりできるのは、このアカウントだけです。</p>
       </section>
 
       <!-- かんり -->
@@ -38,6 +39,7 @@
           <button class="admin-tab" data-pane="players" role="tab">プレイヤー</button>
           <button class="admin-tab" data-pane="rooms" role="tab">対戦の部屋</button>
           <button id="btn-reload" class="btn btn-small btn-ghost admin-reload">↻ 読みなおす</button>
+          <button id="btn-logout" class="btn btn-small btn-ghost">ログアウト</button>
         </nav>
 
         <!-- ランキング -->
@@ -76,10 +78,10 @@
     </div>
   </div>
 
-  <script src="js/firebase-config.js?v=16"></script>
-  <script src="js/avatar.js?v=16"></script>
-  <script src="js/store.js?v=16"></script>
-  <script src="js/questions.js?v=16"></script>
-  <script src="js/admin.js?v=16"></script>
+  <script src="js/firebase-config.js?v=17"></script>
+  <script src="js/avatar.js?v=17"></script>
+  <script src="js/store.js?v=17"></script>
+  <script src="js/questions.js?v=17"></script>
+  <script src="js/admin.js?v=17"></script>
 </body>
 </html>

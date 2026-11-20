@@ -1,5 +1,5 @@
 // 記録の保存場所
-// ・js/firebase-config.js が入っていれば Firebase（Realtime Database＋匿名ログイン）
+// ・js/firebase-config.js が入っていれば Firebase（Realtime Database＋匿名ログイン。先生はメール＋パスワード）
 // ・まだ空っぽなら「テストモード」（この端末の localStorage だけ）
 // どちらでも、同じ使い方（Store.〇〇）で読み書きできる。
 (function () {
@@ -28,9 +28,19 @@
   }
 
   // ---------- Firebase の読みこみ ----------
-  function loadScript(src) {
+  // 外のサイトから読みこむプログラムは「指紋（ハッシュ）」をつけて、書きかえられていたら読みこまない
+  const SDK_INTEGRITY = {
+    'firebase-app-compat.js': 'sha384-ZaR6mWzmJtrRibZ1Vm7SoHFr8OXjyAuGAXalGDKqbxFT18oi/z+oZLIRFkpeNor1',
+    'firebase-auth-compat.js': 'sha384-I1LYojsZ5RM1cOda44Z2h42Qa6YfsQ1XkXxREnhp4ueYBR/4d1pG1K+NZM537Vsj',
+    'firebase-database-compat.js': 'sha384-g5H2aNdtgRBYOBLsuOAuHvUXWnw4bswmU+tYjmGc1G3JfKxl79uWwV4sQarJsLwu',
+  };
+  function loadScript(src, integrity) {
     return new Promise((resolve, reject) => {
       const s = document.createElement('script');
+      if (integrity) {
+        s.integrity = integrity;
+        s.crossOrigin = 'anonymous';
+      }
       s.src = src;
       s.onload = resolve;
       s.onerror = () => reject(new Error('読みこめませんでした: ' + src));
@@ -42,33 +52,51 @@
     return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(msg)), ms))]);
   }
 
-  async function initFirebase() {
+  // opts.anonymous が false のとき（先生用画面）は、自動の匿名ログインをしない
+  async function initFirebase(opts) {
     for (const f of SDK_FILES) {
       if (f === 'firebase-app-compat.js' && window.firebase) continue;
-      await loadScript(`https://www.gstatic.com/firebasejs/${SDK}/${f}`);
+      await loadScript(`https://www.gstatic.com/firebasejs/${SDK}/${f}`, SDK_INTEGRITY[f]);
     }
     if (!firebase.apps.length) firebase.initializeApp(window.FIREBASE_CONFIG);
     const auth = firebase.auth();
-    const user = await withTimeout(new Promise((resolve, reject) => {
-      const off = auth.onAuthStateChanged((u) => {
-        if (u) { off(); resolve(u); }
-      }, reject);
-      if (!auth.currentUser) auth.signInAnonymously().catch(reject);
+    // 前にログインしていた人（匿名・先生）がいれば、その人のまま使う
+    let user = await withTimeout(new Promise((resolve, reject) => {
+      const off = auth.onAuthStateChanged((u) => { off(); resolve(u); }, reject);
     }), 15000, 'ログインに時間がかかっています');
-    uid = user.uid;
+    if (!user && opts.anonymous !== false) {
+      user = (await withTimeout(auth.signInAnonymously(), 15000, 'ログインに時間がかかっています')).user;
+    }
+    uid = user ? user.uid : null;
     db = firebase.database();
   }
 
-  async function init() {
+  async function init(opts) {
     if (mode) return mode;
     if (hasConfig()) {
-      await initFirebase();
+      await initFirebase(opts || {});
       mode = 'firebase';
     } else {
       uid = 'test-device';
       mode = 'test';
     }
     return mode;
+  }
+
+  // ---------- 先生のログイン ----------
+  function teacherEmail() { return String(window.TEACHER_EMAIL || '').trim(); }
+  function isTeacher() {
+    const u = mode === 'firebase' && firebase.auth().currentUser;
+    return !!(u && u.email && u.email === teacherEmail());
+  }
+  async function signInTeacher(password) {
+    const r = await firebase.auth().signInWithEmailAndPassword(teacherEmail(), password);
+    uid = r.user.uid;
+    return r.user;
+  }
+  async function signOutTeacher() {
+    await firebase.auth().signOut();
+    uid = null;
   }
 
   // ---------- テストモード用（この端末だけの小さなデータベース） ----------
@@ -237,6 +265,7 @@
 
   window.Store = {
     SUBJECT_KEYS, init, hasConfig, normalizeName, nameKey,
+    teacherEmail, isTeacher, signInTeacher, signOutTeacher,
     getPlayer, savePlayer, addPoints, pullGacha, GACHA_COST,
     submitScore, getBest, getAllBest, getRanking, getRank, updateRankingProfile,
     mode: () => mode, uid: () => uid, db: () => db,

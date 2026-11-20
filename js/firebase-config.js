@@ -13,6 +13,8 @@ window.FIREBASE_CONFIG = {
   appId: '1:1084024224289:web:67f8bccf96c13690e54160',
 };
 
-// 先生用画面（admin.html）に入るためのパスコード（ステップ5で使います）
-// ※かんたんなカギです。本格的なセキュリティではありません。
-window.ADMIN_PASSCODE = '1234';
+// 先生用画面（admin.html）にログインする先生のメールアドレス
+// Firebase の Authentication で、このメールアドレスの先生アカウントを作っておく（パスワードは先生だけが知っている）。
+// database.rules.json の中にも同じメールアドレスが書いてある（変えるときは両方そろえる）。
+// 本物のメールアドレスでなくてよい（ログインの名前として使うだけ）。
+window.TEACHER_EMAIL = 'sensei@example.com';
