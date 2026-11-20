@@ -1596,3 +1596,21 @@ kbd {
   font-size: 16px; /* 16px より小さいと iPad が画面を拡大してしまう */
   pointer-events: none;
 }
+
+/* 対戦は 2〜5人：待機室は5つの席、対戦中のキャラは5人が1列に入るように */
+.room-players { grid-template-columns: repeat(5, minmax(0, 1fr)); width: min(1000px, 100%); gap: 10px; }
+.b-players { grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); }
+@media (orientation: portrait) {
+  .room-players { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .b-players { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }
+  .b-players .pcard { gap: 4px; padding: 4px 6px 4px 4px; }
+  .b-players .pc-avatar { width: 30px; height: 30px; }
+  .b-players .pc-name { font-size: 13px; }
+}
+/* 横向きの対戦結果：5人でも1画面に入るように、順位を2列にならべる */
+@media (orientation: landscape) {
+  .br-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: min(900px, 100%); gap: 8px 12px; }
+}
+@media (orientation: portrait) {
+  .br-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: min(720px, 100%); gap: 8px 10px; }
+}

@@ -1,4 +1,4 @@
-// 対戦モード（2〜4人・部屋コード）
+// 対戦モード（2〜5人・部屋コード）
 // しくみ：
 // ・部屋のようすは Firebase の rooms/{部屋コード} に全部のせて、全員が同じものを見る
 // ・問題の進行（次の問題・時間切れ）は「ホスト」の端末が書きこむ
@@ -8,7 +8,7 @@
 (function () {
   const $ = (id) => document.getElementById(id);
 
-  const MAX_PLAYERS = 4;
+  const MAX_PLAYERS = 5;
   const FIRST_INTRO_MS = 2400;  // 1問目の前（ファンファーレのぶん長め）
   const INTRO_MS = 1500;        // 「第○問」を見せる時間
   const AFTER_FULL_MS = 5000;   // 全文が出てから時間切れまで
@@ -241,7 +241,7 @@
         enter(c);
         return;
       }
-      if (reason === 'full') lobbyError('その部屋は 満員です（4人まで）');
+      if (reason === 'full') lobbyError('その部屋は 満員です（5人まで）');
       else if (reason === 'playing') lobbyError('その部屋は もう 始まっているよ');
       else lobbyError('その部屋は 見つからないよ。数字を たしかめてね');
     } catch (e) {
@@ -1112,7 +1112,9 @@
       const title = document.createElement('div');
       title.className = 'br-title';
       const names = top.map((p) => (p.uid === uid ? 'あなた' : p.name + 'さん')).join('と ');
-      title.textContent = top.length > 1 ? names + 'が 同点 優勝！' : names + 'の 優勝！';
+      title.textContent = !(top[0] && top[0].score)
+        ? 'みんな 0点… 引き分け！'
+        : top.length > 1 ? names + 'が 同点 優勝！' : names + 'の 優勝！';
       const crown = document.createElement('div');
       crown.className = 'br-crown';
       crown.textContent = '👑';
