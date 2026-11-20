@@ -119,7 +119,18 @@
   // ---------- アクセサリー（ためた点でガチャを引いてゲット） ----------
   // slot: 'head'（頭）か 'face'（顔）。rarity: ガチャのレア度（n ふつう / r レア / sr スーパーレア）
   const SK = `stroke="${INK}" stroke-width="3.5" stroke-linejoin="round"`;
+  // 星の形（cx,cy が中心、R が外がわ、r が内がわ）
+  function starPath(cx, cy, R, r) {
+    let d = '';
+    for (let i = 0; i < 10; i++) {
+      const a = (Math.PI / 5) * i - Math.PI / 2;
+      const rr = i % 2 ? r : R;
+      d += (i ? 'L' : 'M') + (cx + rr * Math.cos(a)).toFixed(1) + ' ' + (cy + rr * Math.sin(a)).toFixed(1) + ' ';
+    }
+    return d + 'Z';
+  }
   const ACCESSORIES = [
+    // ---- ふつう ----
     { id: 'hachimaki', icon: '30 50 160 70', name: 'はちまき', slot: 'head', rarity: 'n',
       svg: () => `<path d="M40 84 Q100 58 160 84 L161 99 Q100 73 39 99Z" fill="#fff" ${SK}/><circle cx="100" cy="79" r="7" fill="#ff4f4f"/><path d="M158 86 L184 74 L180 93Z M158 94 L182 106 L167 113Z" fill="#fff" ${SK}/>` },
     { id: 'megane', icon: '38 94 124 44', name: 'メガネ', slot: 'face', rarity: 'n',
@@ -128,6 +139,23 @@
       svg: () => `<g fill="#ff5c8d" ${SK} transform="translate(138 55) scale(1.35) translate(-138 -55)"><path d="M136 50 C114 28 104 66 132 60Z"/><path d="M140 50 C162 28 172 66 144 60Z"/><circle cx="138" cy="55" r="7"/></g>` },
     { id: 'cap', icon: '30 16 165 86', name: '野球ぼう', slot: 'head', rarity: 'n',
       svg: () => `<path d="M40 88 C38 42 68 26 100 26 C132 26 162 42 160 88 C130 78 70 78 40 88Z" fill="#4d9dff" ${SK}/><path d="M100 30 L100 80" stroke="#2f74d8" stroke-width="3"/><path d="M96 84 C130 72 166 74 188 90 C160 97 126 97 96 92Z" fill="#2f74d8" ${SK}/><circle cx="100" cy="27" r="6" fill="#2f74d8" ${SK}/>` },
+    { id: 'flower', icon: '28 30 56 56', name: '花かざり', slot: 'head', rarity: 'n',
+      svg: () => `${[0, 72, 144, 216, 288].map((a) => `<circle cx="${(56 + 12 * Math.sin(a * Math.PI / 180)).toFixed(1)}" cy="${(58 - 12 * Math.cos(a * Math.PI / 180)).toFixed(1)}" r="10.5" fill="#ff8fbc" ${SK}/>`).join('')}<circle cx="56" cy="58" r="8" fill="#ffd23f" ${SK}/>` },
+    { id: 'band', icon: '30 30 140 70', name: 'カチューシャ', slot: 'head', rarity: 'n',
+      svg: () => `<path d="M44 92 C40 40 160 40 156 92" fill="none" stroke="${INK}" stroke-width="13" stroke-linecap="round"/><path d="M44 92 C40 40 160 40 156 92" fill="none" stroke="#2ec4a6" stroke-width="6.5" stroke-linecap="round"/><g fill="#fff" stroke="${INK}" stroke-width="2"><circle cx="70" cy="54" r="3"/><circle cx="100" cy="46" r="3"/><circle cx="130" cy="54" r="3"/></g>` },
+    { id: 'starpin', icon: '118 34 48 48', name: '星のヘアピン', slot: 'head', rarity: 'n',
+      svg: () => `<path d="${starPath(142, 58, 20, 8.5)}" fill="#ffc93c" ${SK}/><circle cx="138" cy="53" r="3" fill="#fff" opacity=".8"/>` },
+    { id: 'mask', icon: '40 112 120 58', name: 'マスク', slot: 'face', rarity: 'n',
+      svg: () => `<path d="M71 131 L46 119 M71 149 L48 127 M129 131 L154 119 M129 149 L152 127" fill="none" stroke="${INK}" stroke-width="2.5" stroke-linecap="round"/><path d="M70 126 Q100 118 130 126 L128 154 Q100 166 72 154Z" fill="#fff" ${SK}/><path d="M76 136 Q100 131 124 136 M76 146 Q100 141 124 146" fill="none" stroke="#c9c4df" stroke-width="2.5" stroke-linecap="round"/>` },
+    { id: 'bandaid', icon: '108 116 52 44', name: 'ばんそうこう', slot: 'face', rarity: 'n',
+      svg: () => `<g transform="rotate(-25 132 138)"><rect x="112" y="131" width="40" height="15" rx="7.5" fill="#f6c89f" ${SK}/><rect x="126" y="133" width="12" height="11" rx="2" fill="#e9b07f"/><g fill="#c98f63"><circle cx="118" cy="136" r="1.2"/><circle cx="118" cy="141" r="1.2"/><circle cx="146" cy="136" r="1.2"/><circle cx="146" cy="141" r="1.2"/></g></g>` },
+    { id: 'beret', icon: '28 6 140 70', name: 'ベレーぼう', slot: 'head', rarity: 'n',
+      svg: () => `<path d="M94 32 l3 -12" stroke="${INK}" stroke-width="5" stroke-linecap="round"/><ellipse cx="94" cy="50" rx="62" ry="21" transform="rotate(-8 94 50)" fill="#e0503f" ${SK}/><path d="M44 64 Q94 74 146 52" fill="none" stroke="#b83a2c" stroke-width="4" stroke-linecap="round"/>` },
+    { id: 'leaf', icon: '86 -2 54 50', name: 'はっぱ', slot: 'head', rarity: 'n',
+      svg: () => `<path d="M100 44 Q101 34 104 24" fill="none" stroke="${INK}" stroke-width="4" stroke-linecap="round"/><path d="M104 24 C96 6 122 -2 134 4 C130 18 118 28 104 24Z" fill="#4bb56d" ${SK}/><path d="M106 22 Q118 14 128 7" fill="none" stroke="#2f8a4d" stroke-width="2.5" stroke-linecap="round"/>` },
+    { id: 'rednose', icon: '82 111 36 36', name: '赤いはな', slot: 'face', rarity: 'n',
+      svg: () => `<circle cx="100" cy="129" r="11" fill="#ff4f4f" ${SK}/><circle cx="96" cy="125" r="3.5" fill="#fff" opacity=".85"/>` },
+    // ---- レア ----
     { id: 'sunglasses', icon: '38 96 124 40', name: 'サングラス', slot: 'face', rarity: 'r',
       svg: () => `<g ${SK}><rect x="57" y="104" width="39" height="26" rx="10" fill="${INK}"/><rect x="104" y="104" width="39" height="26" rx="10" fill="${INK}"/><path d="M96 112 L104 112 M57 110 L43 105 M143 110 L157 105" fill="none" stroke-linecap="round"/></g><path d="M65 111 L77 111 M112 111 L124 111" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"/>` },
     { id: 'headphones', icon: '16 30 168 116', name: 'ヘッドホン', slot: 'head', rarity: 'r',
@@ -136,6 +164,19 @@
       svg: (c) => `<path d="M48 74 L54 18 L92 46Z" fill="${c.hairC}" ${SK}/><path d="M152 74 L146 18 L108 46Z" fill="${c.hairC}" ${SK}/><path d="M58 60 L61 32 L82 47Z" fill="#ffb3c8"/><path d="M142 60 L139 32 L118 47Z" fill="#ffb3c8"/>` },
     { id: 'hige', icon: '56 120 88 30', name: 'ひげ', slot: 'face', rarity: 'r',
       svg: () => `<path d="M100 137 C92 127 74 127 63 142 C76 136 88 142 100 140 C112 142 124 136 137 142 C126 127 108 127 100 137Z" fill="#4a3426" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>` },
+    { id: 'usamimi', icon: '56 -2 88 56', name: 'うさみみ', slot: 'head', rarity: 'r',
+      svg: () => `<path d="M72 50 C60 22 62 2 75 2 C88 2 92 22 90 50Z" fill="#fff" ${SK}/><path d="M76 42 C69 24 71 10 76 10 C81 10 84 24 83 42Z" fill="#ffb3c8"/><path d="M110 50 C108 22 112 2 125 2 C138 2 140 22 128 50Z" fill="#fff" ${SK}/><path d="M117 42 C116 24 119 10 124 10 C129 10 131 24 124 42Z" fill="#ffb3c8"/>` },
+    { id: 'witch', icon: '26 -12 152 80', name: 'まほうのぼうし', slot: 'head', rarity: 'r',
+      svg: () => `<g transform="rotate(8 100 46)"><ellipse cx="100" cy="52" rx="66" ry="12" fill="#5b45c9" ${SK}/><path d="M62 50 C74 30 84 6 112 -6 C110 14 128 32 138 50Z" fill="#8c6bff" ${SK}/><path d="M64 46 Q100 54 136 46 L138 50 Q100 60 62 50Z" fill="#ffc93c" ${SK}/><path d="${starPath(108, 24, 8, 3.5)}" fill="#ffe27a" stroke="${INK}" stroke-width="2"/></g>` },
+    { id: 'goggles', icon: '34 94 132 46', name: 'ゴーグル', slot: 'face', rarity: 'r',
+      svg: () => `<path d="M40 113 L60 115 M140 115 L160 113" stroke="${INK}" stroke-width="11" stroke-linecap="round"/><path d="M40 113 L60 115 M140 115 L160 113" stroke="#ff8a3d" stroke-width="5" stroke-linecap="round"/><path d="M96 117 L104 117" stroke="${INK}" stroke-width="6"/><g stroke="${INK}" stroke-width="5"><circle cx="78" cy="117" r="18" fill="#bfe8ff" fill-opacity=".55"/><circle cx="122" cy="117" r="18" fill="#bfe8ff" fill-opacity=".55"/></g><path d="M68 110 Q72 104 79 103 M112 110 Q116 104 123 103" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>` },
+    { id: 'tsuno', icon: '52 2 96 56', name: 'おにのつの', slot: 'head', rarity: 'r',
+      svg: () => `<path d="M62 54 C60 36 64 22 74 10 C78 24 84 38 84 54Z" fill="#ffd23f" ${SK}/><path d="M138 54 C140 36 136 22 126 10 C122 24 116 38 116 54Z" fill="#ffd23f" ${SK}/><path d="M66 40 L82 42 M65 30 L78 32 M134 40 L118 42 M135 30 L122 32" stroke="#e8a90c" stroke-width="3" stroke-linecap="round"/>` },
+    { id: 'chef', icon: '34 -2 132 72', name: 'コックぼう', slot: 'head', rarity: 'r',
+      svg: () => `<path d="M60 56 C40 52 40 22 62 22 C64 4 92 0 100 14 C110 0 138 4 138 22 C160 22 160 52 140 56Z" fill="#fff" ${SK}/><rect x="60" y="48" width="80" height="18" rx="5" fill="#fff" ${SK}/><path d="M80 52 L80 62 M100 52 L100 62 M120 52 L120 62" stroke="#d6d2e8" stroke-width="2.5"/>` },
+    { id: 'monocle', icon: '98 94 56 80', name: '片メガネ', slot: 'face', rarity: 'r',
+      svg: () => `<path d="M136 129 Q148 150 140 172" fill="none" stroke="#e8a90c" stroke-width="3" stroke-dasharray="4 3" stroke-linecap="round"/><circle cx="122" cy="117" r="18" fill="#fff" fill-opacity=".3" stroke="${INK}" stroke-width="8"/><circle cx="122" cy="117" r="18" fill="none" stroke="#ffc93c" stroke-width="4"/>` },
+    // ---- スーパーレア ----
     { id: 'silkhat', icon: '36 -8 128 72', name: 'シルクハット', slot: 'head', rarity: 'sr',
       svg: () => `<g transform="rotate(-8 100 44)" ${SK}><path d="M70 48 L74 4 L126 4 L130 48Z" fill="#3b3473"/><rect x="71" y="34" width="58" height="10" fill="#ff4f4f"/><ellipse cx="100" cy="50" rx="56" ry="10" fill="#3b3473"/></g>` },
     { id: 'heart', icon: '44 118 112 36', name: 'ハートのほっぺ', slot: 'face', rarity: 'sr',
@@ -144,6 +185,14 @@
       svg: () => `<ellipse cx="100" cy="22" rx="40" ry="11" fill="none" stroke="${INK}" stroke-width="12"/><ellipse cx="100" cy="22" rx="40" ry="11" fill="none" stroke="#ffe27a" stroke-width="6"/>` },
     { id: 'crown', icon: '46 -2 108 62', name: '王冠', slot: 'head', rarity: 'sr',
       svg: () => `<path d="M62 54 L56 14 L80 34 L100 6 L120 34 L144 14 L138 54Z" fill="#ffc93c" ${SK}/><rect x="62" y="44" width="76" height="10" fill="#e8a90c" ${SK}/><g stroke="${INK}" stroke-width="2.5"><circle cx="100" cy="30" r="5" fill="#ff4f4f"/><circle cx="56" cy="14" r="5" fill="#4d9dff"/><circle cx="144" cy="14" r="5" fill="#4d9dff"/><circle cx="100" cy="6" r="5" fill="#2ec4a6"/></g>` },
+    { id: 'tiara', icon: '50 2 100 62', name: 'ティアラ', slot: 'head', rarity: 'sr',
+      svg: () => `<path d="M58 60 Q100 42 142 60 L138 48 L124 40 L112 46 L100 20 L88 46 L76 40 L62 48Z" fill="#e6ecf7" ${SK}/><g stroke="${INK}" stroke-width="2.5"><circle cx="100" cy="38" r="6" fill="#ff5c8d"/><circle cx="78" cy="49" r="4" fill="#4d9dff"/><circle cx="122" cy="49" r="4" fill="#4d9dff"/></g><path d="M100 4 L102 12 L110 14 L102 16 L100 24 L98 16 L90 14 L98 12Z" fill="#ffe27a" stroke="${INK}" stroke-width="1.5"/>` },
+    { id: 'kabuto', icon: '28 -6 144 104', name: 'かぶと', slot: 'head', rarity: 'sr',
+      svg: () => `<path d="M38 96 C34 44 66 26 100 26 C134 26 166 44 162 96 L150 96 C148 66 128 52 100 52 C72 52 52 66 50 96Z" fill="#3b3473" ${SK}/><path d="M50 62 Q100 44 150 62" fill="none" stroke="#ffc93c" stroke-width="4"/><path d="M60 32 C68 8 86 -4 100 14 C114 -4 132 8 140 32 C126 20 112 20 100 32 C88 20 74 20 60 32Z" fill="#ffc93c" ${SK}/><circle cx="100" cy="34" r="7" fill="#ff4f4f" ${SK}/>` },
+    { id: 'rainbow', icon: '20 -4 160 90', name: 'にじ', slot: 'head', rarity: 'sr',
+      svg: () => `<path d="M46.5 72 A53.5 53.5 0 0 1 153.5 72" fill="none" stroke="${INK}" stroke-width="28"/><path d="M40 72 A60 60 0 0 1 160 72" fill="none" stroke="#ff4f4f" stroke-width="7"/><path d="M46.5 72 A53.5 53.5 0 0 1 153.5 72" fill="none" stroke="#ffc93c" stroke-width="7"/><path d="M53 72 A47 47 0 0 1 147 72" fill="none" stroke="#4d9dff" stroke-width="7"/><g fill="#fff" ${SK}><circle cx="36" cy="76" r="11"/><circle cx="50" cy="80" r="9"/><circle cx="164" cy="76" r="11"/><circle cx="150" cy="80" r="9"/></g>` },
+    { id: 'starglasses', icon: '50 92 100 50', name: '星のメガネ', slot: 'face', rarity: 'sr',
+      svg: () => `<path d="M96 116 Q100 112 104 116 M60 112 L46 106 M140 112 L154 106" fill="none" stroke="${INK}" stroke-width="4" stroke-linecap="round"/><path d="${starPath(78, 118, 21, 10)}" fill="#ff5c8d" fill-opacity=".9" ${SK}/><path d="${starPath(122, 118, 21, 10)}" fill="#ff5c8d" fill-opacity=".9" ${SK}/><path d="M72 112 L78 110 M116 112 L122 110" stroke="#fff" stroke-width="3" stroke-linecap="round"/>` },
   ];
 
   function getAccessory(id) { return ACCESSORIES.find((x) => x.id === id) || null; }
