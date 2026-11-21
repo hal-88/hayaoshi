@@ -136,7 +136,7 @@
   function buildSubjects() {
     const wrap = $('rank-subjects');
     wrap.innerHTML = '';
-    Questions.SUBJECTS.forEach((s) => {
+    Questions.SUBJECTS.concat(Questions.EXTRA).forEach((s) => { // 歴史イベントのランキングも消せるように
       const b = document.createElement('button');
       b.className = 'rank-tab';
       b.dataset.key = s.key;

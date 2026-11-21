@@ -188,8 +188,7 @@
     $('result-total').textContent = r.total;
     $('result-correct').textContent = r.correct;
     $('result-avgchar').textContent = r.avgChar == null ? '-' : r.avgChar;
-    const isEvent = key === HistoryEvent.EVENT.subject; // 歴史イベントは、ランキングやベスト記録ではなく「イベントの点」
-    $('stat-best').hidden = isEvent;
+    const isEvent = key === HistoryEvent.EVENT.subject; // 歴史イベントは「イベントの点」がたまる（ランキングはイベントの中）
     $('rp-label').textContent = isEvent ? 'イベントの点' : 'ためた点';
     $('btn-result-gacha').textContent = isEvent ? '🎁 偉人ガチャを引く' : '🎁 ガチャを引く';
     $('result-best').textContent = Math.max(Profile.best(key), r.total);
@@ -205,17 +204,8 @@
     show('screen-result');
     Sound.play('fanfare');
 
-    if (isEvent) {
-      Profile.applyEvent(r.total).then((res) => {
-        if (lastSubjectKey !== key || !$('screen-result').classList.contains('active')) return;
-        showPoints(res, '偉人ガチャ');
-      }).catch(() => {
-        $('rp-next').textContent = '記録を 保存できませんでした（インターネットを たしかめてね）';
-      });
-      return;
-    }
-
-    Profile.applyPractice(key, r.total).then((res) => {
+    const apply = isEvent ? Profile.applyEvent(key, r.total) : Profile.applyPractice(key, r.total);
+    apply.then((res) => {
       if (lastSubjectKey !== key || !$('screen-result').classList.contains('active')) return;
       $('result-best').textContent = res.best;
       if (res.isNewBest) {
@@ -227,10 +217,10 @@
         }, 1200);
       }
       if (res.rank && res.rank <= 10) {
-        $('result-rank').textContent = '🏆 ' + r.subject.label + ' ランキング ' + res.rank + '位！';
+        $('result-rank').textContent = '🏆 ' + (isEvent ? '歴史チャレンジ' : r.subject.label) + ' ランキング ' + res.rank + '位！';
         $('result-rank').hidden = false;
       }
-      showPoints(res);
+      showPoints(res, isEvent ? '偉人ガチャ' : undefined);
     }).catch(() => {
       $('rp-next').textContent = '記録を 保存できませんでした（インターネットを たしかめてね）';
     });

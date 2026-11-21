@@ -47,6 +47,7 @@
   function open() {
     if (!isOpen()) { alert(EVENT.name + 'は ' + EVENT.label + ' だよ'); return; }
     $('skin-result').hidden = true;
+    $('event-rank').hidden = true;
     window.App.show('screen-event');
     update();
   }
@@ -63,7 +64,36 @@
     $('event-can').classList.toggle('ready', pulls > 0);
     $('btn-skin-1').disabled = busy || pulls < 1;
     $('btn-skin-10').disabled = busy || pulls < 10;
+    const best = Profile.best(EVENT.subject);
+    $('event-best').innerHTML = best ? 'あなたの ベスト記録 <b></b>点' : 'まだ 記録がないよ。ランキングを ねらおう！';
+    if (best) $('event-best').querySelector('b').textContent = best;
     renderCollection();
+  }
+
+  // ---------- 歴史チャレンジのランキング ----------
+  let rankLoad = 0;
+  async function openRanking() {
+    const myId = ++rankLoad;
+    const list = $('event-rank-list');
+    list.innerHTML = '<li class="rank-loading">読みこみ中…</li>';
+    $('event-rank-empty').hidden = true;
+    $('event-rank-me').textContent = '';
+    $('event-rank').hidden = false;
+    const myBest = Profile.best(EVENT.subject);
+    let rows, myRank;
+    try {
+      [rows, myRank] = await Promise.all([Store.getRanking(EVENT.subject), Store.getRank(EVENT.subject, myBest)]);
+    } catch (e) {
+      if (myId !== rankLoad) return;
+      list.innerHTML = '<li class="rank-loading">読みこめませんでした。インターネットを たしかめてね</li>';
+      return;
+    }
+    if (myId !== rankLoad) return;
+    Ranking.renderRows(list, rows);
+    $('event-rank-empty').hidden = rows.length > 0;
+    $('event-rank-me').textContent = myBest
+      ? 'あなたの ベスト記録：' + myBest + '点（' + myRank + '位）'
+      : 'あなたは まだ 記録がないよ';
   }
 
   // 12人のコレクション（まだの人は「？」）
@@ -180,6 +210,8 @@
       close();
       $('event-can').textContent = x ? '「' + x.name + '」の スキンを つけたよ！' : '';
     });
+    $('btn-event-rank').addEventListener('click', () => { Sound.play('tap'); openRanking(); });
+    $('btn-event-rank-close').addEventListener('click', () => { Sound.play('tap'); rankLoad++; $('event-rank').hidden = true; });
     $('btn-event-maker').addEventListener('click', () => { Sound.play('tap'); window.App.openMaker('skin'); });
   }
 

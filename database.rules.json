@@ -64,7 +64,7 @@
         ".indexOn": [
           "best"
         ],
-        ".validate": "$subject === 'kokugo' || $subject === 'sansu' || $subject === 'shakai' || $subject === 'rika' || $subject === 'all'",
+        ".validate": "$subject === 'kokugo' || $subject === 'sansu' || $subject === 'shakai' || $subject === 'rika' || $subject === 'all' || $subject === 'history'",
         "$key": {
           ".write": "auth != null && (newData.exists() || auth.token.email === 'sensei@example.com')",
           ".validate": "newData.hasChildren(['name', 'best']) && $key.length <= 40 && (!data.exists() || newData.child('best').val() >= data.child('best').val())",

@@ -44,8 +44,17 @@
     }
     if (myId !== loadId) return; // べつのタブをおした
 
-    list.innerHTML = '';
+    renderRows(list, rows);
     $('rank-empty').hidden = rows.length > 0;
+
+    $('rank-me').textContent = myBest
+      ? 'あなたの ベスト記録：' + myBest + '点（' + myRank + '位）'
+      : 'あなたは まだ この教科の 記録がないよ';
+  }
+
+  // 上位10人を ならべる（歴史イベントのランキングでも使う）
+  function renderRows(list, rows) {
+    list.innerHTML = '';
     let rank = 0;
     let prevBest = null;
     rows.forEach((r, i) => {
@@ -61,10 +70,6 @@
       li.querySelector('.rank-score').textContent = r.best + '点';
       list.appendChild(li);
     });
-
-    $('rank-me').textContent = myBest
-      ? 'あなたの ベスト記録：' + myBest + '点（' + myRank + '位）'
-      : 'あなたは まだ この教科の 記録がないよ';
   }
 
   function open() {
@@ -72,5 +77,5 @@
     show(currentSubject);
   }
 
-  window.Ranking = { open, show };
+  window.Ranking = { open, show, renderRows };
 })();

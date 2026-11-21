@@ -184,13 +184,30 @@
   }
 
   // ---------- 歴史イベント ----------
-  async function applyEvent(score) {
+  // イベントの点をためて、歴史チャレンジのランキング（1回の点のベスト）にものせる
+  async function applyEvent(subject, score) {
     let total = state.eventPoints || 0;
     if (score > 0) total = await Store.addEventPoints(state.key, state.name, score);
     const before = total - score;
     state.eventPoints = total;
+
     saveLocal();
-    return { before, total, pulls: skinPulls() };
+
+    // ランキングに のせられなくても、イベントの点は ためたままにする
+    let best = state.best[subject] || 0;
+    let isNewBest = false;
+    let rank = null;
+    try {
+      if (score > 0) {
+        const r = await Store.submitScore(subject, state.key, state.name, rankingAvatar(), score);
+        best = r.best;
+        isNewBest = r.isNewBest;
+      }
+      state.best[subject] = best;
+      saveLocal();
+      rank = best ? await Store.getRank(subject, best) : null;
+    } catch (e) { /* 何もしない */ }
+    return { before, total, best, isNewBest, rank, pulls: skinPulls() };
   }
 
   function skinPulls() {

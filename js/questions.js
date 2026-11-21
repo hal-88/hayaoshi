@@ -53,5 +53,5 @@
     return a.slice(0, n);
   }
 
-  window.Questions = { SUBJECTS, load, pick, getSubject };
+  window.Questions = { SUBJECTS, EXTRA, load, pick, getSubject };
 })();

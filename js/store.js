@@ -5,7 +5,7 @@
 (function () {
   const SDK = '10.14.1';
   const SDK_FILES = ['firebase-app-compat.js', 'firebase-auth-compat.js', 'firebase-database-compat.js'];
-  const SUBJECT_KEYS = ['kokugo', 'sansu', 'shakai', 'rika', 'all'];
+  const SUBJECT_KEYS = ['kokugo', 'sansu', 'shakai', 'rika', 'all', 'history']; // history は歴史イベントのランキング
 
   let mode = null; // 'firebase' | 'test'
   let db = null;

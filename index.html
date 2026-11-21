@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20">
+  <link rel="stylesheet" href="css/style.css?v=21">
 </head>
 <body>
   <div id="app">
@@ -503,7 +503,11 @@
         <div class="event-card">
           <div class="event-card-title"><span>1</span>歴史チャレンジ</div>
           <p class="event-text">縄文時代から 昭和まで、歴史の問題が 10問。<br>とった点が「イベントの点」に なるよ！</p>
-          <button id="btn-event-play" class="btn btn-primary event-play">歴史チャレンジ（10問）</button>
+          <div id="event-best" class="event-best"></div>
+          <div class="event-play-buttons">
+            <button id="btn-event-play" class="btn btn-primary event-play">歴史チャレンジ（10問）</button>
+            <button id="btn-event-rank" class="btn btn-sub event-rank-btn">🏆 ランキング</button>
+          </div>
         </div>
         <div class="event-card">
           <div class="event-card-title"><span>2</span>偉人ガチャ</div>
@@ -546,28 +550,41 @@
       </div>
     </div>
 
+    <div id="event-rank" class="modal" hidden>
+      <div class="modal-card event-rank-card">
+        <div class="event-rank-title">🏆 歴史チャレンジ ランキング</div>
+        <p class="event-rank-help">1回（10問）の 点の ベスト記録・上位10人</p>
+        <ol id="event-rank-list" class="rank-list event-rank-list"></ol>
+        <p id="event-rank-empty" class="rank-empty" hidden>まだ だれも 記録がないよ。いちばんのりを ねらおう！</p>
+        <div id="event-rank-me" class="rank-me"></div>
+        <div class="name-buttons">
+          <button id="btn-event-rank-close" class="btn btn-ghost">とじる</button>
+        </div>
+      </div>
+    </div>
+
     <div id="fx-layer" class="fx-layer" aria-hidden="true"></div>
   </div>
 
   <!-- ローマ字 → ひらがな（WanaKana, MIT License） -->
   <script src="https://cdn.jsdelivr.net/npm/wanakana@5.3.1/wanakana.min.js" integrity="sha384-ei/skGdXfWHx8zodPeKIHWR7N4qSpIlj3wBwEPMPfw2MvsbEJSFrPMUCPXnEuKSw" crossorigin="anonymous"></script>
-  <script src="js/firebase-config.js?v=20"></script>
-  <script src="js/sound.js?v=20"></script>
-  <script src="js/judge.js?v=20"></script>
-  <script src="js/avatar.js?v=20"></script>
-  <script src="js/store.js?v=20"></script>
-  <script src="js/profile.js?v=20"></script>
-  <script src="js/questions.js?v=20"></script>
-  <script src="js/reader.js?v=20"></script>
-  <script src="js/effects.js?v=20"></script>
-  <script src="js/keys.js?v=20"></script>
-  <script src="js/practice.js?v=20"></script>
-  <script src="js/maker.js?v=20"></script>
-  <script src="js/ranking.js?v=20"></script>
-  <script src="js/battle.js?v=20"></script>
-  <script src="js/gacha.js?v=20"></script>
-  <script src="js/skins.js?v=20"></script>
-  <script src="js/event.js?v=20"></script>
-  <script src="js/app.js?v=20"></script>
+  <script src="js/firebase-config.js?v=21"></script>
+  <script src="js/sound.js?v=21"></script>
+  <script src="js/judge.js?v=21"></script>
+  <script src="js/avatar.js?v=21"></script>
+  <script src="js/store.js?v=21"></script>
+  <script src="js/profile.js?v=21"></script>
+  <script src="js/questions.js?v=21"></script>
+  <script src="js/reader.js?v=21"></script>
+  <script src="js/effects.js?v=21"></script>
+  <script src="js/keys.js?v=21"></script>
+  <script src="js/practice.js?v=21"></script>
+  <script src="js/maker.js?v=21"></script>
+  <script src="js/ranking.js?v=21"></script>
+  <script src="js/battle.js?v=21"></script>
+  <script src="js/gacha.js?v=21"></script>
+  <script src="js/skins.js?v=21"></script>
+  <script src="js/event.js?v=21"></script>
+  <script src="js/app.js?v=21"></script>
 </body>
 </html>
