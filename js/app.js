@@ -50,6 +50,15 @@
     btn.textContent = 'はじめる';
 
     if (Profile.loadLocal()) {
+      // この iPad で まだ あいことばを 入れていなければ、名前と あいことばを 入れてもらう
+      let ok = true;
+      try { ok = await Store.deviceOk(Profile.key()); } catch (e) { ok = true; }
+      if (!ok) {
+        openName('first');
+        $('name-input').value = Profile.name();
+        onNameOk();
+        return;
+      }
       show('screen-menu');
       // ほかの iPad で遊んだ分を読みなおす
       Profile.refresh().then((r) => {
@@ -70,8 +79,10 @@
   function openName(mode) {
     nameMode = mode;
     found = null;
+    pass = null;
     $('name-form').hidden = false;
     $('name-found').hidden = true;
+    $('name-pass').hidden = true;
     $('name-error').hidden = true;
     $('btn-name-back').hidden = mode === 'first';
     $('name-input').value = '';
@@ -108,6 +119,22 @@
     if (!res.ok) { nameError('その名前は つかえないよ。べつの名前にしてね'); return; }
     Sound.play('tap');
 
+    // この iPad で まだ あいことばを 入れていない名前なら、あいことばの画面へ
+    let mine;
+    let locked = false;
+    try {
+      mine = await Store.deviceOk(res.key);
+      if (!mine) locked = await Store.hasPass(res.key);
+    } catch (e) {
+      nameError('つながりませんでした。もう一度 おしてね');
+      return;
+    }
+    if (!mine) { openPass(res, locked); return; }
+    afterName(res);
+  }
+
+  // 名前（と あいことば）が すんだあと
+  function afterName(res) {
     if (res.data) {
       // 同じ名前の記録がある → 本人か確かめる
       found = res;
@@ -122,7 +149,7 @@
       Maker.open({
         canCancel: true,
         onDone: async (r) => {
-          if (!r) { show('screen-name'); return; }
+          if (!r) { openName(nameMode); return; }
           try {
             await Profile.register(res.name, res.key, r.avatar);
           } catch (e) {
@@ -134,6 +161,103 @@
       });
       show('screen-avatar');
     }
+  }
+
+  // ---- あいことば ----
+  let pass = null; // { res, locked }
+  let passFails = 0;
+  let passWaitUntil = 0;
+
+  function openPass(res, locked) {
+    pass = { res, locked };
+    const name = (res.data && res.data.name) || res.name;
+    $('pass-name').textContent = name;
+    $('pass-title').textContent = res.data ? 'さんの 記録が 見つかったよ！' : 'さん、はじめまして！';
+    $('pass-avatar').hidden = !res.data;
+    $('pass-points').hidden = !res.data;
+    if (res.data) {
+      $('pass-avatar').innerHTML = Avatar.render(res.data.avatar || Avatar.DEFAULT, { equipped: res.data.equipped || {} });
+      $('pass-points-num').textContent = (Number(res.data.totalPoints) || 0).toLocaleString();
+    }
+    setPassLabel();
+    $('pass-input').value = '';
+    $('pass-error').hidden = true;
+    $('name-form').hidden = true;
+    $('name-found').hidden = true;
+    $('name-pass').hidden = false;
+    setTimeout(() => { try { $('pass-input').focus({ preventScroll: true }); } catch (e) { /* 何もしない */ } }, 200);
+  }
+
+  function setPassLabel() {
+    if (pass.locked) {
+      $('pass-label').textContent = 'あいことば（数字 4けた）を 入れてね';
+      $('pass-hint').textContent = 'わすれたときは、先生に 言ってね';
+    } else {
+      $('pass-label').textContent = pass.res.data ? 'あいことば（数字 4けた）を 決めてね' : 'あいことば（数字 4けた）を 決めよう';
+      $('pass-hint').textContent = 'ちがうiPadで あそぶときに つかうよ。わすれないでね！ 友だちには ないしょだよ';
+    }
+  }
+
+  function passError(msg) {
+    $('pass-error').textContent = msg;
+    $('pass-error').hidden = false;
+    Effects.shake($('name-pass'));
+  }
+
+  async function onPassOk() {
+    if (!pass) return;
+    if (Date.now() < passWaitUntil) { passError('たくさん まちがえたので、少し まってから 入れてね'); return; }
+    const code = $('pass-input').value.normalize('NFKC').replace(/\s/g, '');
+    if (!/^[0-9]{4}$/.test(code)) { passError('数字 4けたで 入れてね'); return; }
+    const btn = $('btn-pass-ok');
+    btn.disabled = true;
+    btn.textContent = 'たしかめています…';
+    let ok;
+    try {
+      ok = pass.locked ? await Store.checkPass(pass.res.key, code) : await Store.setPass(pass.res.key, code);
+    } catch (e) {
+      passError('つながりませんでした。もう一度 おしてね');
+      return;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'けってい';
+    }
+    if (!ok) {
+      if (!pass.locked) {
+        // 少し前に、ほかの iPad で あいことばが 決まった
+        pass.locked = true;
+        setPassLabel();
+        passError('もう あいことばが 決まっていたよ。その あいことばを 入れてね');
+        return;
+      }
+      passFails += 1;
+      $('pass-input').value = '';
+      Sound.play('wrong');
+      if (passFails >= 5) {
+        passFails = 0;
+        passWaitUntil = Date.now() + 30000;
+        passError('5回 まちがえたので、30秒 まってね');
+      } else {
+        passError('あいことばが ちがうよ');
+      }
+      return;
+    }
+    passFails = 0;
+    Sound.play('correct');
+    const res = pass.res;
+    pass = null;
+    if (res.data) {
+      // 記録がある子は、そのまま つづきから
+      try {
+        await Profile.loginExisting(res.data.name || res.name, res.key, res.data);
+      } catch (e) {
+        alert('読みこめませんでした。もう一度 おしてね。');
+        return;
+      }
+      show('screen-menu');
+      return;
+    }
+    afterName(res);
   }
 
   async function onFoundYes() {
@@ -311,6 +435,13 @@
     $('btn-name-ok').addEventListener('click', onNameOk);
     $('btn-name-back').addEventListener('click', () => { Sound.play('tap'); show('screen-menu'); });
     $('btn-found-yes').addEventListener('click', onFoundYes);
+    $('btn-pass-ok').addEventListener('click', onPassOk);
+    $('btn-pass-no').addEventListener('click', () => { Sound.play('tap'); openName(nameMode); });
+    $('pass-input').addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' || e.isComposing || e.keyCode === 229) return;
+      e.preventDefault();
+      onPassOk();
+    });
     $('btn-found-no').addEventListener('click', () => { Sound.play('tap'); openName(nameMode); });
     $('btn-rename').addEventListener('click', () => { Sound.play('tap'); openName('rename'); });
 

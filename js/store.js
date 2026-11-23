@@ -153,6 +153,52 @@
     return res.snapshot.val();
   }
 
+  // ---------- あいことば ----------
+  // secrets/{名前キー}       … あいことば（だれも読めない。ルールの中で くらべるだけ）
+  // locks/{名前キー}         … あいことばが 決まっているか（true）
+  // devices/{名前キー}/{uid} … あいことばを 入れた iPad。この iPad だけが その子の記録に 書きこめる
+  function isDenied(e) { return !!e && (e.code === 'PERMISSION_DENIED' || /permission/i.test(String(e.message || e))); }
+
+  // この iPad は、もう この名前の あいことばを 入れたか
+  async function deviceOk(key) {
+    return (await get('devices/' + key + '/' + uid)) != null;
+  }
+  async function hasPass(key) {
+    return !!(await get('locks/' + key));
+  }
+  // あいことばを 決める（もう決まっていたら false）
+  async function setPass(key, code) {
+    if (mode === 'test') {
+      if (testGet('locks/' + key)) return false;
+      testSet('secrets/' + key, code);
+      testSet('locks/' + key, true);
+      testSet('devices/' + key + '/' + uid, code);
+      return true;
+    }
+    try {
+      await db.ref().update({ ['secrets/' + key]: code, ['locks/' + key]: true, ['devices/' + key + '/' + uid]: code });
+      return true;
+    } catch (e) {
+      if (isDenied(e)) return false;
+      throw e;
+    }
+  }
+  // あいことばを たしかめる（ちがったら false）
+  async function checkPass(key, code) {
+    if (mode === 'test') {
+      if (testGet('secrets/' + key) !== code) return false;
+      testSet('devices/' + key + '/' + uid, code);
+      return true;
+    }
+    try {
+      await db.ref('devices/' + key + '/' + uid).set(code);
+      return true;
+    } catch (e) {
+      if (isDenied(e)) return false;
+      throw e;
+    }
+  }
+
   // ---------- プレイヤー ----------
   function getPlayer(key) { return get('players/' + key); }
 
@@ -160,20 +206,23 @@
     return update('players/' + key, Object.assign({}, values, { updatedAt: Date.now() }));
   }
 
-  // 累計点数をふやす（同じ名前の人が2台で同時に遊んでも、点数が消えないようにする）
-  async function addPoints(key, name, delta) {
-    const v = await transaction('players/' + key + '/totalPoints', (cur) => (Number(cur) || 0) + delta);
-    const total = Number(v) || 0;
-    await savePlayer(key, { name });
-    return total;
+  // 点をふやす（同じ名前の人が2台で同時に遊んでも、点数が消えないようにする）
+  // pointsAt は 点をふやした時刻。ルールで「30秒あけないと ふやせない」ように している
+  async function addTo(key, name, field, delta) {
+    const v = await transaction('players/' + key, (cur) => {
+      const now = Date.now();
+      if (cur === null) return { name, totalPoints: 0, [field]: delta, pointsAt: now, updatedAt: now };
+      cur[field] = (Number(cur[field]) || 0) + delta;
+      cur.pointsAt = now;
+      cur.updatedAt = now;
+      return cur;
+    });
+    return v ? Number(v[field]) || 0 : 0;
   }
-
-  // 歴史イベントの点をふやす
-  async function addEventPoints(key, name, delta) {
-    const v = await transaction('players/' + key + '/eventPoints', (cur) => (Number(cur) || 0) + delta);
-    await savePlayer(key, { name });
-    return Number(v) || 0;
-  }
+  // 累計点数
+  function addPoints(key, name, delta) { return addTo(key, name, 'totalPoints', delta); }
+  // 歴史イベントの点
+  function addEventPoints(key, name, delta) { return addTo(key, name, 'eventPoints', delta); }
 
   // ---------- ガチャ ----------
   // ためた点を 500点 × 回数 へらして、アクセサリーを引く。
@@ -282,6 +331,7 @@
   window.Store = {
     SUBJECT_KEYS, init, hasConfig, normalizeName, nameKey,
     teacherEmail, isTeacher, signInTeacher, signOutTeacher,
+    deviceOk, hasPass, setPass, checkPass,
     getPlayer, savePlayer, addPoints, addEventPoints, pullGacha, pullSkinGacha, GACHA_COST,
     submitScore, getBest, getAllBest, getRanking, getRank, updateRankingProfile,
     mode: () => mode, uid: () => uid, db: () => db,

@@ -9,7 +9,7 @@
       ],
       "$key": {
         ".read": "auth != null",
-        ".write": "auth != null && (newData.exists() || auth.token.email === 'sensei@example.com')",
+        ".write": "auth != null && (auth.token.email === 'sensei@example.com' || (newData.exists() && root.child('devices').child($key).child(auth.uid).exists()))",
         ".validate": "newData.hasChildren(['name', 'totalPoints']) && $key.length <= 40",
         "name": {
           ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 10"
@@ -32,7 +32,7 @@
           }
         },
         "totalPoints": {
-          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000000 && ((!data.exists() && newData.val() <= 1500) || (data.exists() && newData.val() <= data.val() + 1500 && newData.val() >= data.val() - 5000))"
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000000 && ((!data.exists() && newData.val() <= 1500) || (data.exists() && newData.val() <= data.val() + 1500 && newData.val() >= data.val() - 5000 && (newData.val() <= data.val() || (!data.parent().child('pointsAt').exists() || newData.parent().child('pointsAt').val() - data.parent().child('pointsAt').val() >= 30000))))"
         },
         "accessories": {
           "$id": {
@@ -43,7 +43,7 @@
           ".validate": "newData.isNumber()"
         },
         "eventPoints": {
-          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000000 && ((!data.exists() && newData.val() <= 1500) || (data.exists() && newData.val() <= data.val() + 1500 && newData.val() >= data.val() - 5000))"
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000000 && ((!data.exists() && newData.val() <= 1500) || (data.exists() && newData.val() <= data.val() + 1500 && newData.val() >= data.val() - 5000 && (newData.val() <= data.val() || (!data.parent().child('pointsAt').exists() || newData.parent().child('pointsAt').val() - data.parent().child('pointsAt').val() >= 30000))))"
         },
         "skins": {
           "$id": {
@@ -53,8 +53,32 @@
         "skin": {
           ".validate": "newData.isString() && newData.val().length <= 20"
         },
+        "pointsAt": {
+          ".validate": "newData.isNumber() && (newData.val() === data.val() || (newData.val() >= now - 120000 && newData.val() <= now + 120000))"
+        },
         "$other": {
           ".validate": false
+        }
+      }
+    },
+    "secrets": {
+      "$key": {
+        ".write": "auth != null && $key.length <= 40 && ((!data.exists() && newData.isString() && newData.val().matches(/^[0-9]{4}$/)) || (auth.token.email === 'sensei@example.com' && !newData.exists()))"
+      }
+    },
+    "locks": {
+      ".read": "auth != null && auth.token.email === 'sensei@example.com'",
+      "$key": {
+        ".read": "auth != null",
+        ".write": "auth != null && $key.length <= 40 && ((!data.exists() && newData.val() === true && newData.parent().parent().child('secrets').child($key).exists()) || (auth.token.email === 'sensei@example.com' && !newData.exists()))"
+      }
+    },
+    "devices": {
+      "$key": {
+        ".write": "auth != null && auth.token.email === 'sensei@example.com' && !newData.exists()",
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid && newData.exists() && newData.val() === newData.parent().parent().parent().child('secrets').child($key).val()"
         }
       }
     },
@@ -66,7 +90,7 @@
         ],
         ".validate": "$subject === 'kokugo' || $subject === 'sansu' || $subject === 'shakai' || $subject === 'rika' || $subject === 'all' || $subject === 'history'",
         "$key": {
-          ".write": "auth != null && (newData.exists() || auth.token.email === 'sensei@example.com')",
+          ".write": "auth != null && (auth.token.email === 'sensei@example.com' || (newData.exists() && root.child('devices').child($key).child(auth.uid).exists()))",
           ".validate": "newData.hasChildren(['name', 'best']) && $key.length <= 40 && (!data.exists() || newData.child('best').val() >= data.child('best').val())",
           "name": {
             ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 10"

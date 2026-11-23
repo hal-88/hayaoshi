@@ -5,6 +5,7 @@
   let pane = 'ranking';
   let subject = 'kokugo';
   let players = {};
+  let locks = {}; // あいことばが 決まっている名前
 
   function status(msg, isError) {
     const el = $('admin-status');
@@ -110,6 +111,13 @@
     row.querySelector('.admin-meta').textContent = o.meta || '';
     row.querySelector('.admin-value').textContent = o.value || '';
     row.querySelector('.admin-del').addEventListener('click', o.onDelete);
+    if (o.extra) {
+      const b = document.createElement('button');
+      b.className = 'btn btn-small admin-extra';
+      b.textContent = o.extra.label;
+      b.addEventListener('click', o.extra.onClick);
+      row.querySelector('.admin-del').before(b);
+    }
     return row;
   }
 
@@ -203,7 +211,10 @@
     const rows = $('player-rows');
     empty(rows, '読みこみ中…');
     try {
-      players = (await db.ref('players').get()).val() || {};
+      [players, locks] = await Promise.all([
+        db.ref('players').get().then((s) => s.val() || {}),
+        db.ref('locks').get().then((s) => s.val() || {}),
+      ]);
     } catch (e) {
       empty(rows, '読みこめませんでした');
       return;
@@ -225,11 +236,19 @@
       rows.appendChild(makeRow({
         avatar,
         name: p.name || p.key,
-        meta: '最後に 遊んだ日 ' + fmtDate(p.updatedAt),
+        meta: '最後に 遊んだ日 ' + fmtDate(p.updatedAt) + '・' + (locks[p.key] ? 'あいことば あり' : 'あいことば まだ'),
+        extra: locks[p.key] ? {
+          label: 'あいことばを 消す',
+          onClick: () => {
+            if (!confirm('「' + (p.name || p.key) + '」の あいことばを 消しますか？\n記録は そのまま残ります。つぎに 名前を入れたときに、新しい あいことばを 決めなおせます。')) return;
+            const up = { ['secrets/' + p.key]: null, ['locks/' + p.key]: null, ['devices/' + p.key]: null };
+            run(() => db.ref().update(up), '「' + (p.name || p.key) + '」の あいことばを 消しました');
+          },
+        } : null,
         value: 'ためた点 ' + (Number(p.totalPoints) || 0).toLocaleString() + '点',
         onDelete: () => {
           if (!confirm('「' + (p.name || p.key) + '」を 消しますか？\nためた点・アクセサリー・ランキングの記録も 消えます。')) return;
-          const up = { ['players/' + p.key]: null };
+          const up = { ['players/' + p.key]: null, ['secrets/' + p.key]: null, ['locks/' + p.key]: null, ['devices/' + p.key]: null };
           Store.SUBJECT_KEYS.forEach((s) => { up['rankings/' + s + '/' + p.key] = null; });
           run(() => db.ref().update(up), '「' + (p.name || p.key) + '」を 消しました');
         },

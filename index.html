@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=22">
+  <link rel="stylesheet" href="css/style.css?v=23">
 </head>
 <body>
   <div id="app">
@@ -127,11 +127,27 @@
           <input id="name-input" class="name-input" type="text" maxlength="10"
                  autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
                  placeholder="10文字まで" aria-label="名前">
-          <p class="name-hint">同じ名前なら、ちがうiPadでも つづきから あそべるよ</p>
+          <p class="name-hint name-warn">⚠ 本名（ほんとうの名前）は 入れないでね。<br>ニックネームに しよう！</p>
+          <p class="name-hint">あいことばを 入れれば、ちがうiPadでも つづきから あそべるよ</p>
           <p id="name-error" class="name-error" hidden></p>
           <div class="name-buttons">
             <button id="btn-name-back" class="btn btn-ghost">もどる</button>
             <button id="btn-name-ok" class="btn btn-primary">けってい</button>
+          </div>
+        </div>
+        <div id="name-pass" class="name-found" hidden>
+          <div id="pass-avatar" class="avatar-badge found-avatar"></div>
+          <p class="found-text"><b id="pass-name"></b> <span id="pass-title"></span></p>
+          <p id="pass-points" class="found-points">ためた点 <b id="pass-points-num">0</b>点</p>
+          <p id="pass-label" class="pass-label"></p>
+          <input id="pass-input" class="name-input pass-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4"
+                 autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                 placeholder="数字 4けた" aria-label="あいことば">
+          <p id="pass-hint" class="name-hint"></p>
+          <p id="pass-error" class="name-error" hidden></p>
+          <div class="name-buttons">
+            <button id="btn-pass-no" class="btn btn-ghost">ちがう名前にする</button>
+            <button id="btn-pass-ok" class="btn btn-primary">けってい</button>
           </div>
         </div>
         <div id="name-found" class="name-found" hidden>
@@ -568,23 +584,23 @@
 
   <!-- ローマ字 → ひらがな（WanaKana, MIT License） -->
   <script src="https://cdn.jsdelivr.net/npm/wanakana@5.3.1/wanakana.min.js" integrity="sha384-ei/skGdXfWHx8zodPeKIHWR7N4qSpIlj3wBwEPMPfw2MvsbEJSFrPMUCPXnEuKSw" crossorigin="anonymous"></script>
-  <script src="js/firebase-config.js?v=22"></script>
-  <script src="js/sound.js?v=22"></script>
-  <script src="js/judge.js?v=22"></script>
-  <script src="js/avatar.js?v=22"></script>
-  <script src="js/store.js?v=22"></script>
-  <script src="js/profile.js?v=22"></script>
-  <script src="js/questions.js?v=22"></script>
-  <script src="js/reader.js?v=22"></script>
-  <script src="js/effects.js?v=22"></script>
-  <script src="js/keys.js?v=22"></script>
-  <script src="js/practice.js?v=22"></script>
-  <script src="js/maker.js?v=22"></script>
-  <script src="js/ranking.js?v=22"></script>
-  <script src="js/battle.js?v=22"></script>
-  <script src="js/gacha.js?v=22"></script>
-  <script src="js/skins.js?v=22"></script>
-  <script src="js/event.js?v=22"></script>
-  <script src="js/app.js?v=22"></script>
+  <script src="js/firebase-config.js?v=23"></script>
+  <script src="js/sound.js?v=23"></script>
+  <script src="js/judge.js?v=23"></script>
+  <script src="js/avatar.js?v=23"></script>
+  <script src="js/store.js?v=23"></script>
+  <script src="js/profile.js?v=23"></script>
+  <script src="js/questions.js?v=23"></script>
+  <script src="js/reader.js?v=23"></script>
+  <script src="js/effects.js?v=23"></script>
+  <script src="js/keys.js?v=23"></script>
+  <script src="js/practice.js?v=23"></script>
+  <script src="js/maker.js?v=23"></script>
+  <script src="js/ranking.js?v=23"></script>
+  <script src="js/battle.js?v=23"></script>
+  <script src="js/gacha.js?v=23"></script>
+  <script src="js/skins.js?v=23"></script>
+  <script src="js/event.js?v=23"></script>
+  <script src="js/app.js?v=23"></script>
 </body>
 </html>
