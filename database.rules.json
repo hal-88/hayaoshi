@@ -114,7 +114,7 @@
               }
             },
             "skin": {
-              ".validate": "newData.isString() && newData.val().length <= 20"
+              ".validate": "(newData.isNumber() && newData.val() >= 0 && newData.val() < 20) || (newData.isString() && newData.val().length <= 20)"
             }
           },
           "updatedAt": {
@@ -191,7 +191,7 @@
                 }
               },
               "skin": {
-                ".validate": "newData.isString() && newData.val().length <= 20"
+                ".validate": "(newData.isNumber() && newData.val() >= 0 && newData.val() < 20) || (newData.isString() && newData.val().length <= 20)"
               }
             },
             "score": {
