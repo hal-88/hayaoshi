@@ -52,7 +52,17 @@
       const j = Math.floor(Math.random() * (i + 1));
       [a[i], a[j]] = [a[j], a[i]];
     }
-    return a.slice(0, n);
+    // 同じ答えの問題（聞き方を変えた「言いかえ」問題など）は、いっしょに出ないように後ろへ回す
+    const key = (q) => (window.Judge ? Judge.normalizeAnswer(q.answer) : q.answer);
+    const seen = new Set();
+    const first = [];
+    const later = [];
+    a.forEach((q) => {
+      const k = key(q);
+      (seen.has(k) ? later : first).push(q);
+      seen.add(k);
+    });
+    return first.concat(later).slice(0, n);
   }
 
   window.Questions = { SUBJECTS, EXTRA, load, pick, getSubject };
