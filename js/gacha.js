@@ -14,7 +14,7 @@
     $('gacha-points').textContent = total.toLocaleString();
     $('gacha-can').textContent = pulls
       ? 'ガチャが ' + pulls + '回 引けるよ！'
-      : 'あと ' + (cost - (total % cost)) + '点で 1回 引けるよ。練習で 点を ためよう！';
+      : 'あと ' + (cost - (total % cost)) + '点で 1回 引けるよ。ひとりでチャレンジで 点を ためよう！';
     $('gacha-can').classList.toggle('ready', pulls > 0);
     $('btn-gacha-1').disabled = busy || pulls < 1;
     $('btn-gacha-10').disabled = busy || pulls < 10;

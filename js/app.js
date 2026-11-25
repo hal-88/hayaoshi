@@ -276,15 +276,27 @@
   function buildSubjectList() {
     const wrap = $('subject-list');
     wrap.innerHTML = '';
-    Questions.SUBJECTS.forEach((s) => {
+    const list = Questions.SUBJECTS.filter((s) => !s.battleOnly);
+    // 歴史イベントの間は、オールジャンルの横に「歴史チャレンジ」（イベントの点がたまる）
+    if (HistoryEvent.isOpen()) {
+      const ev = Questions.getSubject(HistoryEvent.EVENT.subject);
+      list.push(Object.assign({}, ev, { label: '歴史チャレンジ', isEvent: true }));
+    }
+    list.forEach((s) => {
       const b = document.createElement('button');
-      b.className = 'subject-btn' + (s.key === 'all' ? ' subject-all' : '');
+      b.className = 'subject-btn' + (s.key === 'all' ? ' subject-all' : '') + (s.isEvent ? ' subject-event' : '');
       b.style.setProperty('--c', s.color);
       const best = Profile.best(s.key);
       b.innerHTML = '<span class="subject-badge"></span><span class="subject-text"><span class="subject-name"></span><span class="subject-best"></span></span>';
       b.querySelector('.subject-badge').textContent = s.badge;
       b.querySelector('.subject-name').textContent = s.label;
       b.querySelector('.subject-best').textContent = best ? 'ベスト ' + best + '点' : 'まだ記録なし';
+      if (s.isEvent) {
+        const tag = document.createElement('span');
+        tag.className = 'subject-ribbon';
+        tag.textContent = '期間限定';
+        b.appendChild(tag);
+      }
       b.addEventListener('click', () => startPractice(s.key));
       wrap.appendChild(b);
     });

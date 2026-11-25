@@ -7,7 +7,7 @@
   function buildTabs() {
     const wrap = $('rank-tabs');
     wrap.innerHTML = '';
-    Questions.SUBJECTS.forEach((s) => {
+    Questions.SUBJECTS.filter((s) => !s.battleOnly).forEach((s) => {
       const b = document.createElement('button');
       b.className = 'rank-tab';
       b.style.setProperty('--c', s.color);

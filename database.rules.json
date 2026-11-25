@@ -152,7 +152,7 @@
         },
         "settings": {
           "subject": {
-            ".validate": "newData.val() === 'kokugo' || newData.val() === 'sansu' || newData.val() === 'shakai' || newData.val() === 'rika' || newData.val() === 'all'"
+            ".validate": "newData.val() === 'kokugo' || newData.val() === 'sansu' || newData.val() === 'shakai' || newData.val() === 'rika' || newData.val() === 'rekishi' || newData.val() === 'all'"
           },
           "target": {
             ".validate": "newData.isNumber() && newData.val() >= 3 && newData.val() <= 10"

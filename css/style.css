@@ -406,7 +406,7 @@ kbd {
   background: rgba(255, 255, 255, .25);
 }
 .subject-btn:active { transform: translateY(5px); box-shadow: 0 2px 0 var(--ink); }
-.subject-all { grid-column: 1 / -1; justify-content: center; }
+.subject-all { justify-content: center; }
 .subject-badge {
   flex: 0 0 auto;
   display: flex;
@@ -1728,3 +1728,12 @@ kbd {
 .pass-input { width: min(240px, 100%); text-align: center; letter-spacing: .4em; font-family: var(--display); }
 .pass-input::placeholder { letter-spacing: 0; font-family: inherit; }
 #name-pass .found-avatar { width: 110px; height: 110px; }
+
+/* 教科えらび：オールジャンルが最後のときは横いっぱい。イベント中は横に「歴史チャレンジ」 */
+.subject-all:last-child { grid-column: 1 / -1; }
+.subject-event { position: relative; overflow: hidden; }
+.subject-ribbon {
+  position: absolute; top: 8px; right: -26px; padding: 1px 28px; transform: rotate(35deg); z-index: 1;
+  background: var(--red); color: #fff; font-size: 12px; font-weight: 800; border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink);
+}
+.subject-event .subject-name, .subject-all:not(:last-child) .subject-name { font-size: clamp(20px, 3.8vmin, 30px); white-space: nowrap; }

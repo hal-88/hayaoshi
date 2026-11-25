@@ -5,13 +5,15 @@
     { key: 'sansu', label: '算数', badge: '算', file: 'data/questions/sansu.json', color: '#4d9dff' },
     { key: 'shakai', label: '社会', badge: '社', file: 'data/questions/shakai.json', color: '#ff8a3d' },
     { key: 'rika', label: '理科', badge: '理', file: 'data/questions/rika.json', color: '#2ec4a6' },
+    // 歴史：社会の中の「歴史」の印がついた問題（歴史イベントと同じ問題）。対戦だけで使う（battleOnly）
+    { key: 'rekishi', label: '歴史', badge: '歴', file: null, from: 'shakai', tag: 'history', color: '#c0702a', battleOnly: true },
     { key: 'all', label: 'オールジャンル', badge: '全', file: null, color: '#8c6bff' },
   ];
 
   // イベントだけで使う教科（ふつうの教科えらび・ランキング・対戦には出さない）
-  // tag の問題を from の教科から集める
+  // tag の問題を from の教科から集める。イベントの点とイベントのランキングになる
   const EXTRA = [
-    { key: 'history', label: '歴史', badge: '歴', from: 'shakai', tag: 'history', color: '#c0702a' },
+    { key: 'history', label: '歴史', adminLabel: '歴史イベント', badge: '歴', from: 'shakai', tag: 'history', color: '#c0702a' },
   ];
 
   const cache = {};
@@ -25,12 +27,12 @@
     return list;
   }
 
-  // key: 'shakai' | 'rika' | 'kokugo' | 'sansu' | 'all'
+  // key: 'shakai' | 'rika' | 'kokugo' | 'sansu' | 'rekishi' | 'all' | 'history'（イベント）
   async function load(key) {
-    const extra = EXTRA.find((s) => s.key === key);
-    if (extra) {
-      const list = await loadOne(getSubject(extra.from));
-      return list.filter((q) => (q.tags || []).includes(extra.tag));
+    const tagged = getSubject(key);
+    if (tagged && tagged.tag) {
+      const list = await loadOne(getSubject(tagged.from));
+      return list.filter((q) => (q.tags || []).includes(tagged.tag));
     }
     if (key === 'all') {
       const lists = await Promise.all(SUBJECTS.filter((s) => s.file).map(loadOne));

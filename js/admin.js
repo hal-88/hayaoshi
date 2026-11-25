@@ -23,7 +23,7 @@
 
   function subjectLabel(key) {
     const s = Questions.getSubject(key);
-    return s ? s.label : key;
+    return s ? s.adminLabel || s.label : key;
   }
 
   // ---------- 先生のログイン ----------
@@ -144,12 +144,12 @@
   function buildSubjects() {
     const wrap = $('rank-subjects');
     wrap.innerHTML = '';
-    Questions.SUBJECTS.concat(Questions.EXTRA).forEach((s) => { // 歴史イベントのランキングも消せるように
+    Questions.SUBJECTS.filter((s) => !s.battleOnly).concat(Questions.EXTRA).forEach((s) => { // 歴史イベントのランキングも消せるように
       const b = document.createElement('button');
       b.className = 'rank-tab';
       b.dataset.key = s.key;
       b.style.setProperty('--c', s.color);
-      b.textContent = s.label;
+      b.textContent = s.adminLabel || s.label;
       b.addEventListener('click', () => { subject = s.key; loadRanking(); });
       wrap.appendChild(b);
     });
