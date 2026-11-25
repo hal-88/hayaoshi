@@ -7,11 +7,23 @@
   function buildTabs() {
     const wrap = $('rank-tabs');
     wrap.innerHTML = '';
-    Questions.SUBJECTS.filter((s) => !s.battleOnly).forEach((s) => {
+    const list = Questions.SUBJECTS.filter((s) => !s.battleOnly);
+    // 歴史イベントの間は、最後に「歴史チャレンジ」のランキング（イベント画面のランキングと同じもの）
+    if (HistoryEvent.isOpen()) {
+      const ev = Questions.getSubject(HistoryEvent.EVENT.subject);
+      list.push(Object.assign({}, ev, { label: '歴史チャレンジ', isEvent: true }));
+    }
+    list.forEach((s) => {
       const b = document.createElement('button');
-      b.className = 'rank-tab';
+      b.className = 'rank-tab' + (s.isEvent ? ' rank-tab-event' : '');
       b.style.setProperty('--c', s.color);
       b.textContent = s.label;
+      if (s.isEvent) {
+        const tag = document.createElement('span');
+        tag.className = 'rank-tab-tag';
+        tag.textContent = '期間限定';
+        b.appendChild(tag);
+      }
       b.dataset.key = s.key;
       b.addEventListener('click', () => {
         Sound.play('tap');
@@ -49,7 +61,9 @@
 
     $('rank-me').textContent = myBest
       ? 'あなたの ベスト記録：' + myBest + '点（' + myRank + '位）'
-      : 'あなたは まだ この教科の 記録がないよ';
+      : currentSubject === HistoryEvent.EVENT.subject
+        ? 'あなたは まだ 歴史チャレンジの 記録がないよ'
+        : 'あなたは まだ この教科の 記録がないよ';
   }
 
   // 上位10人を ならべる（歴史イベントのランキングでも使う）
@@ -73,7 +87,10 @@
   }
 
   function open() {
-    if (!$('rank-tabs').children.length) buildTabs();
+    // イベントが始まった・終わったときに タブを作りなおす
+    const hasEvent = !!$('rank-tabs').querySelector('.rank-tab-event');
+    if (!$('rank-tabs').children.length || hasEvent !== HistoryEvent.isOpen()) buildTabs();
+    if (!$('rank-tabs').querySelector('[data-key="' + currentSubject + '"]')) currentSubject = 'kokugo';
     show(currentSubject);
   }
 
